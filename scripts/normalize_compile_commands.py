@@ -63,7 +63,11 @@ def normalize_compile_commands(
 ) -> int:
     input_path = input_path.resolve(strict=True)
     output_path = output_path.resolve()
-    document: Any = json.loads(input_path.read_text(encoding="utf-8"))
+    document: Any = json.loads(
+        input_path.read_text(  # NOSONAR: intentional local CLI input; CI fixes its path.
+            encoding="utf-8"
+        )
+    )
     if not isinstance(document, list):
         raise ValueError("compilation database must contain a JSON array")
 

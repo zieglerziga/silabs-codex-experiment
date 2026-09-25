@@ -16,7 +16,11 @@ def merge_compile_commands(input_paths: list[Path], output_path: Path) -> int:
     seen_files: set[str] = set()
 
     for input_path in input_paths:
-        document: Any = json.loads(input_path.read_text(encoding="utf-8"))
+        document: Any = json.loads(
+            input_path.read_text(  # NOSONAR: intentional local CLI input; CI fixes its path.
+                encoding="utf-8"
+            )
+        )
         if not isinstance(document, list):
             raise ValueError(f"{input_path} must contain a JSON array")
 

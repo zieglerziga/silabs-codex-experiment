@@ -467,4 +467,6 @@ Resolutions:
   exclude CI-only scripts from the application coverage denominator while
   retaining static analysis. `make verify`, `make workflow-check`,
   `git diff --check`, and both requested Luna re-reviews pass; the remediation
-  is pending its hosted run.
+  is pending its hosted run. The final review follow-up also confirms that the
+  two line-level suppressions explain the intentional local CLI inputs and
+  remain limited to their individual reads.
