@@ -71,6 +71,13 @@ class NormalizeSlcOutputTests(unittest.TestCase):
         )
         self.assertEqual("/srv/sdk", detected)
 
+    def test_detects_forward_unc_in_generator_expression_list(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.cmake"),
+            'set(INCLUDES "$<BUILD_INTERFACE://builder/sdk;relative>")',
+        )
+        self.assertEqual("//builder/sdk", detected)
+
     def test_detects_unquoted_posix_path_in_linker_flags(self) -> None:
         detected = normalizer.find_absolute_path(
             Path("generated.cmake"), "set(LINK_FLAGS -Wl,-rpath,/opt/sdk)"
