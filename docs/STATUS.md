@@ -420,3 +420,10 @@ Resolutions:
 - `git diff --check` passed. Reviewers verified the scope against
   `.github/workflows/pr.yml` and `pr-bootstrap.yml`; junior also confirmed
   PR #1's merged state and recorded head/merge/check metadata with GitHub.
+- The documentation stage was committed as `9bb67d8` on
+  `docs/development-playbook` and opened as PR
+  [#2](https://github.com/zieglerziga/silabs-codex-experiment/pull/2) against
+  `development`. At that head, PR verification run `36180685356` passed Host
+  checks, Firmware build, Workflow security, and Secret scan; bootstrap run
+  `36180685539` passed. This status-only follow-up will trigger the same gates
+  again; the live PR check state is authoritative before merge.
