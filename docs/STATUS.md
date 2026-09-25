@@ -75,7 +75,8 @@ the pull request.
 1. Run `make workflow-check`, host verification, and the firmware build path.
 2. Request independent readability/documentation and embedded-correctness
    reviews, then resolve any findings.
-3. Commit the verified stage and open the pull request against `development`.
+3. Open the SonarCloud pull request against `development` and verify its
+   checks.
 
 ## Verification log
 
@@ -441,3 +442,6 @@ Resolutions:
   compilation commands covering the hand-written firmware and host test source.
 - Final junior readability/documentation and senior platform/CI re-reviews
   reported no findings.
+- The verified implementation was committed as `05411e9` with scoped
+  Conventional Commit message `ci(sonarcloud): analyze protected-branch pull
+  requests`.
