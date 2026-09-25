@@ -49,8 +49,10 @@ rejects host-specific absolute paths. The normalizer also removes SLC's opaque,
 path-dependent Studio metadata comment; `ble_scanner.slcp` remains the project
 source of truth and consecutive generations are byte-for-byte stable.
 
-The optional Ubuntu container supplies only open-source host tools and the Arm
-GNU toolchain. Its base image digest and Ubuntu apt snapshot are fixed. It
+The optional Ubuntu container supplies only open-source host tools and the
+SDK-supported Arm GNU 12.2.Rel1 toolchain, downloaded from Arm and verified by
+SHA-256 for x86-64 or AArch64 hosts. Its base image digest and Ubuntu apt
+snapshot are fixed. It
 consumes the same committed generated project as the host build and mounts the
 external SDK read-only. Runtime networking, capabilities, and root-filesystem
 writes are disabled. Proprietary SLC, Commander, and debug probe access stay
