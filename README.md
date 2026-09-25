@@ -30,7 +30,9 @@ running because reliable RTT access is more important than battery behavior.
 - Silicon Labs SLC CLI 5.11.0 for regeneration;
 - Simplicity Commander for flashing and RTT capture;
 - CMake, Ninja, Make, Python 3, and an Arm GNU toolchain; and
-- ClangFormat for formatting checks.
+- ClangFormat for formatting checks;
+- Git LFS when the SDK checkout contains pointer-form prebuilt archives; and
+- GNU `timeout` (Coreutils) for bounded `make rtt` capture sessions.
 
 Point the build at the external SDK and, when generating, the SLC executable:
 

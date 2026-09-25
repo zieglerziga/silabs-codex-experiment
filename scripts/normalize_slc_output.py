@@ -15,12 +15,10 @@ STUDIO_METADATA_PATTERN = re.compile(
     r"^# BEGIN_SIMPLICITY_STUDIO_METADATA=.*=END_SIMPLICITY_STUDIO_METADATA\s*$",
     re.MULTILINE,
 )
-HOST_PATH_PATTERN = re.compile(
-    r"(?:"
-    r"/(?:home|Users|root|tmp|opt|mnt|media|workspace|workspaces)/[^\s\"']+"
-    r"|/var/(?:folders|tmp)/[^\s\"']+"
-    r"|[A-Za-z]:[/\\][^\s\"']+"
-    r")"
+QUOTED_STRING_PATTERN = re.compile(r'"([^"\r\n]*)"')
+WINDOWS_ABSOLUTE_PATH_PATTERN = re.compile(r"^[A-Za-z]:[/\\]")
+UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
+    r"(?:^|[\s(=])((?:/|[A-Za-z]:[/\\])[^\s;)]+)", re.MULTILINE
 )
 PORTABLE_SDK_BLOCK = """if(NOT DEFINED ENV{SISDK_ROOT} OR \"$ENV{SISDK_ROOT}\" STREQUAL \"\")
   message(FATAL_ERROR \"SISDK_ROOT must point to Simplicity SDK v2025.6.3\")
@@ -99,6 +97,20 @@ def normalize_whitespace(path: Path) -> None:
     path.write_text(normalized, encoding="utf-8")
 
 
+def find_absolute_path(path: Path, content: str) -> str | None:
+    for match in QUOTED_STRING_PATTERN.finditer(content):
+        value = match.group(1)
+        if value.startswith("/") or WINDOWS_ABSOLUTE_PATH_PATTERN.match(value):
+            return value
+
+    if path.suffix in {".cmake", ".json", ".properties", ".txt"}:
+        match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(content)
+        if match is not None:
+            return match.group(1)
+
+    return None
+
+
 def normalize(project_dir: Path, toolchain_template: Path) -> None:
     cmake_dir = project_dir / "ble_scanner_cmake"
     inventory = cmake_dir / "ble_scanner.cmake"
@@ -129,10 +141,10 @@ def normalize(project_dir: Path, toolchain_template: Path) -> None:
     for generated_file in generated_text_files(project_dir):
         normalize_whitespace(generated_file)
         content = generated_file.read_text(encoding="utf-8")
-        match = HOST_PATH_PATTERN.search(content)
-        if match is not None:
+        absolute_path = find_absolute_path(generated_file, content)
+        if absolute_path is not None:
             raise SystemExit(
-                f"host-specific path remains in {generated_file}: {match.group(0)}"
+                f"absolute path remains in {generated_file}: {absolute_path}"
             )
 
 
