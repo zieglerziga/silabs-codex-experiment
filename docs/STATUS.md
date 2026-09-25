@@ -123,3 +123,7 @@ Next actions:
 - Senior review found no defect, but noted an implementation-defined unsigned
   to signed conversion in deadline comparison. It was proactively replaced by
   a fully unsigned half-range comparison.
+- Re-review found the half-range comparison excluded the final valid value.
+  The boundary is now inclusive and has a dedicated regression test.
+- Review-fix verification: `make test` passed 1/1, `make sanitize` passed 1/1,
+  and `git diff --check` passed.

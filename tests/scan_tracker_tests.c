@@ -163,6 +163,15 @@ static void test_summary_snapshot_keeps_cumulative_counters(void) {
   EXPECT_TRUE(scan_tracker_summary_due(&tracker, 90000U));
 }
 
+static void test_deadline_half_range_boundary(void) {
+  scan_tracker_t tracker;
+  scan_tracker_init(&tracker, 0U);
+  tracker.next_summary_ms = 0U;
+
+  EXPECT_TRUE(scan_tracker_summary_due(&tracker, UINT32_MAX / 2U));
+  EXPECT_TRUE(!scan_tracker_summary_due(&tracker, (UINT32_MAX / 2U) + 1U));
+}
+
 int main(void) {
   test_first_sighting_and_suppression();
   test_name_and_rssi_changes_are_rate_limited();
@@ -170,6 +179,7 @@ int main(void) {
   test_cache_evicts_the_oldest_device();
   test_timers_handle_uint32_wrap();
   test_summary_snapshot_keeps_cumulative_counters();
+  test_deadline_half_range_boundary();
 
   if (failures == 0U) {
     (void)puts("scan_tracker_tests: all tests passed");
