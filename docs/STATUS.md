@@ -276,3 +276,13 @@ Resolutions:
 - The feature branch is backed up as `origin/feature/ble-rtt-scanner`; it also
   contains the current `development` bootstrap baseline so the PR event can
   execute both the bootstrap and full verification workflows.
+
+### Pull request verification (open)
+
+- GitHub pull request [#1](https://github.com/zieglerziga/silabs-codex-experiment/pull/1)
+  targets `development` from `feature/ble-rtt-scanner`.
+- Feature head `03c5b73` passed all four checks: bootstrap run `36146207230`
+  and full verification run `36146207345` (`Host checks`, `Workflow security`,
+  and `Secret scan`).
+- This status-only follow-up intentionally triggers the same checks again. The
+  live PR check state is authoritative before merge.
