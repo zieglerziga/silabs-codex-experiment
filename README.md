@@ -92,13 +92,27 @@ make rtt RTT_SECONDS=10
 The RTT transcript is also saved to `build/rtt.log`. Run `make help` for the
 complete command list.
 
+## Pull-request verification
+
+Pull requests targeting `development` run the same `make verify` entry point,
+actionlint for workflow correctness, zizmor for workflow security, and
+TruffleHog across the changed commits. Every third-party action is pinned to a
+full commit SHA and jobs receive read-only permissions unless a narrower
+exception is documented in the workflow.
+
+Run the workflow linters locally in digest-pinned, network-isolated containers:
+
+```sh
+make workflow-check
+```
+
 ## Repository guide
 
 - `firmware/ble_scanner/` contains the `.slcp`, generated Silicon Labs project,
   application adapter, and portable tracker.
 - `tests/` contains SDK-independent host tests.
 - `scripts/` contains repeatable generation, build, SDK preparation, flashing,
-  RTT, container, formatting, and verification flows.
+  RTT, container, formatting, workflow-audit, and verification flows.
 - `docs/ARCHITECTURE.md` explains design decisions.
 - `docs/STATUS.md` is the resumable human-readable project log.
 - `.github/workflows/pr.yml` defines pull-request quality and security gates.

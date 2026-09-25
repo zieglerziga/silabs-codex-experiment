@@ -36,11 +36,8 @@ jobs:
           go install github.com/rhysd/actionlint/cmd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
           "$(go env GOPATH)/bin/actionlint" -color
 
-      - name: Run host static checks
-        run: make check
-
-      - name: Run host tests
-        run: make test
+      - name: Run repository verification
+        run: make verify
 
   workflow-security:
     name: Workflow security
