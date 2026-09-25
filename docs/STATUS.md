@@ -445,3 +445,12 @@ Resolutions:
 - The verified implementation was committed as `05411e9` with scoped
   Conventional Commit message `ci(sonarcloud): analyze protected-branch pull
   requests`.
+- Added `.github/workflows/sonarcloud-bootstrap.yml` for PRs targeting
+  `development`. It follows the existing no-secret bootstrap pattern and
+  confirms that the SonarCloud project configuration and analysis workflow are
+  present before the full scan is registered on the base branch. The bootstrap
+  workflow must land in `development` before it can register future PR runs;
+  it cannot bootstrap its own first PR.
+- Junior readability review reported no findings. Senior platform review
+  confirmed the permissions and pinning, and recorded the base-branch
+  registration limitation above.

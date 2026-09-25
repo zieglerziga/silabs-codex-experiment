@@ -1,0 +1,31 @@
+name: SonarCloud bootstrap
+
+on:
+  pull_request:
+    branches:
+      - development
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonarcloud-bootstrap-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ready:
+    name: SonarCloud automation is available
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Confirm SonarCloud configuration
+        run: |
+          test -s sonar-project.properties
+          test -s .github/workflows/sonarcloud.yml
+          printf '%s\n' 'SonarCloud bootstrap configuration is available.'
