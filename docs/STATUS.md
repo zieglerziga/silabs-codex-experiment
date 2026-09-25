@@ -364,7 +364,7 @@ Resolutions:
 - This status-only follow-up intentionally triggers the same checks again. The
   live PR check state remains authoritative before merge.
 
-### Strict test-architect P2/P3 remediation (implementation complete; review pending)
+### Strict test-architect P2/P3 remediation (complete)
 
 - RTT capture validation now requires the stack-boot handler's `BLE scan
   started` message; the earlier initialization-only message can no longer pass
@@ -386,3 +386,18 @@ Resolutions:
   10-second RTT capture passed only after observing `BLE scan started` and then
   recorded multiple real advertisement lines; an earlier capture containing
   probe output but no stack-start evidence correctly failed.
+- The strict test-architect re-review reported no unresolved findings on the
+  requested P2/P3 items. It confirmed all three RTT states, the eviction-victim
+  oracle, the managed-fragment drift guard, and the actual Ninja flag scope.
+  Direct testing of the validator CLI's stderr and exit code remains an optional
+  small coverage improvement; the tested assessment logic and observed CLI
+  behavior are correct.
+- Junior readability/documentation and senior embedded/CI reviews reported no
+  findings. The senior review independently confirmed the template/generated
+  fragments match and `-Werror` applies to `app.c` and `scan_tracker.c`, but not
+  an inspected generated translation unit.
+- Pull-request verification run `36160957933` passed at commit `c2fe4aa`:
+  `Firmware build` (2m47s), `Host checks`, `Workflow security`, and
+  `Secret scan`. Bootstrap run `36160957852` also passed. This status-only
+  follow-up intentionally triggers the same checks again; the live PR state is
+  authoritative before merge.
