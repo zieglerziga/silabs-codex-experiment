@@ -56,7 +56,7 @@ class NormalizeSlcOutputTests(unittest.TestCase):
             Path("generated.cmake"),
             'target_include_directories(app PRIVATE "$<BUILD_INTERFACE:/srv/sdk>")',
         )
-        self.assertEqual("/srv/sdk>", detected)
+        self.assertEqual("/srv/sdk", detected)
 
     def test_detects_posix_path_in_linker_flags(self) -> None:
         detected = normalizer.find_absolute_path(
@@ -69,7 +69,7 @@ class NormalizeSlcOutputTests(unittest.TestCase):
             Path("generated.cmake"),
             "target_include_directories(app PRIVATE $<BUILD_INTERFACE:/srv/sdk>)",
         )
-        self.assertEqual("/srv/sdk>", detected)
+        self.assertEqual("/srv/sdk", detected)
 
     def test_detects_unquoted_posix_path_in_linker_flags(self) -> None:
         detected = normalizer.find_absolute_path(
@@ -129,6 +129,12 @@ class NormalizeSlcOutputTests(unittest.TestCase):
     def test_allows_https_url(self) -> None:
         detected = normalizer.find_absolute_path(
             Path("generated.cmake"), 'set(DOCUMENTATION "https://example.com/sdk")'
+        )
+        self.assertIsNone(detected)
+
+    def test_allows_unquoted_https_url(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.cmake"), "set(DOCUMENTATION https://example.com/sdk)"
         )
         self.assertIsNone(detected)
 
