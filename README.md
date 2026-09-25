@@ -117,8 +117,8 @@ Run the workflow linters locally in digest-pinned, network-isolated containers:
 make workflow-check
 ```
 
-Audit every workflow action against its latest stable upstream GitHub release
-and resolved immutable commit:
+Audit every external GitHub-hosted workflow action against its latest stable
+upstream release and resolved immutable commit:
 
 ```sh
 make actions-audit
@@ -126,7 +126,8 @@ make actions-audit
 
 The audit requires an authenticated GitHub CLI and intentionally remains a
 manual network check so a new upstream release cannot make an unrelated pull
-request fail without a repository change.
+request fail without a repository change. Local action references are allowed;
+Docker action references must use an immutable SHA-256 image digest.
 
 ## Repository guide
 

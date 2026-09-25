@@ -18,7 +18,11 @@ class AuditGithubActionsTests(unittest.TestCase):
                 "steps:\n"
                 "  - uses: owner/action@" + "a" * 40 + " # v1.2.3\n"
                 "  - uses: owner/action@" + "a" * 40 + " # v1.2.3\n"
-                "  - uses: ./local-action\n",
+                "  - uses: ./local-action\n"
+                "  - uses: $/recommended-local-action\n"
+                "  - uses: docker://registry.example/action@sha256:"
+                + "b" * 64
+                + "\n",
                 encoding="utf-8",
             )
 
@@ -37,6 +41,20 @@ class AuditGithubActionsTests(unittest.TestCase):
 
             with mock.patch.object(audit, "WORKFLOW_ROOT", workflow_root):
                 with self.assertRaisesRegex(RuntimeError, "unversioned action"):
+                    audit.workflow_references()
+
+    def test_rejects_mutable_docker_action_reference(self) -> None:
+        with tempfile.TemporaryDirectory(dir=audit.REPOSITORY_ROOT) as directory:
+            workflow_root = Path(directory)
+            (workflow_root / "checks.yml").write_text(
+                "steps:\n"
+                "  - uses: owner/action@" + "a" * 40 + " # v1.2.3\n"
+                "  - uses: docker://registry.example/action:latest\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(audit, "WORKFLOW_ROOT", workflow_root):
+                with self.assertRaisesRegex(RuntimeError, "mutable Docker action"):
                     audit.workflow_references()
 
     def test_resolves_annotated_release_tag_to_commit(self) -> None:
