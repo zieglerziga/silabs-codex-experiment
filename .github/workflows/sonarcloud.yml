@@ -1,0 +1,89 @@
+name: SonarCloud
+
+on:
+  pull_request:
+    branches: [development, main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonarcloud-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonarcloud:
+    name: SonarCloud analysis
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      DOCKER_BUILDKIT: '1'
+      DOCKER_IMAGE: silabs-ble-scanner-dev:ubuntu24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch pinned Simplicity SDK
+        env:
+          CI_SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
+        run: make prepare-ci-sdk
+
+      - name: Build pinned firmware toolchain image
+        run: make docker-image
+
+      - name: Export pinned compiler for SonarCloud
+        env:
+          ARM_GCC_ROOT: ${{ runner.temp }}/arm-gnu-toolchain
+        run: |
+          container_id=$(docker create "$DOCKER_IMAGE")
+          docker cp "$container_id:/opt/arm-gnu-toolchain" "$ARM_GCC_ROOT"
+          docker rm "$container_id" >/dev/null
+          test -x "$ARM_GCC_ROOT/bin/arm-none-eabi-gcc"
+          "$ARM_GCC_ROOT/bin/arm-none-eabi-gcc" -dumpfullversion
+
+      - name: Build host compilation database
+        run: |
+          cmake -S . -B build/sonar-host \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build build/sonar-host --parallel
+
+      - name: Build firmware and compilation database
+        env:
+          SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
+        run: make docker-firmware
+
+      - name: Normalize compilation database paths
+        env:
+          ARM_GCC_ROOT: ${{ runner.temp }}/arm-gnu-toolchain
+          CI_SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
+        run: |
+          python3 scripts/normalize_compile_commands.py \
+            --input firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
+            --output firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
+            --replace /workspace "$GITHUB_WORKSPACE" \
+            --replace /opt/simplicity_sdk "$CI_SISDK_ROOT" \
+            --replace /opt/arm-gnu-toolchain "$ARM_GCC_ROOT"
+
+      - name: Merge compilation databases
+        run: |
+          python3 scripts/merge_compile_commands.py \
+            --input firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
+            --input build/sonar-host/compile_commands.json \
+            --output build/sonar-compile_commands.json
+
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            --define "sonar.cfamily.compile-commands=build/sonar-compile_commands.json"
