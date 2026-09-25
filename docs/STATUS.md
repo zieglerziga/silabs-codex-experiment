@@ -324,7 +324,7 @@ Resolutions:
   follow-up intentionally triggers the same checks again; the live PR check
   state remains authoritative before merge.
 
-### GitHub Action stable-version refresh (implementation complete; review pending)
+### GitHub Action stable-version refresh (complete)
 
 - Audited all seven `uses:` entries and four unique third-party actions against
   each upstream repository's official latest non-draft, non-prerelease GitHub
@@ -352,3 +352,14 @@ Resolutions:
   self-repository syntax was not recognized. The follow-up requires Docker
   actions to use a SHA-256 digest, accepts both supported local-action forms,
   and adds regression coverage for each case.
+- Fix commit `ddaf735` resolved both findings. Junior and senior re-reviews
+  reported no findings after checking the documentation, all seven current
+  `uses:` entries, local and Docker reference handling, external action
+  subpaths, annotated tags, latest stable release data, and immutable commits.
+- Pull-request verification run `36153115003` passed at commit `ddaf735`:
+  `Firmware build` (2m17s), `Host checks`, `Workflow security`, and
+  `Secret scan`. Bootstrap run `36153115008` also passed. The preceding action
+  migration commit `e0d4e8c` passed the same gates in runs `36152609685` and
+  `36152609682` before the audit-only review fixes.
+- This status-only follow-up intentionally triggers the same checks again. The
+  live PR check state remains authoritative before merge.
