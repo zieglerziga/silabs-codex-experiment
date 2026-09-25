@@ -67,6 +67,7 @@ jobs:
           CI_SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
         run: |
           python3 scripts/normalize_compile_commands.py \
+            --root "$GITHUB_WORKSPACE" \
             --input firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
             --output firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
             --replace /workspace "$GITHUB_WORKSPACE" \
@@ -76,6 +77,7 @@ jobs:
       - name: Merge compilation databases
         run: |
           python3 scripts/merge_compile_commands.py \
+            --root "$GITHUB_WORKSPACE" \
             --input firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
             --input build/sonar-host/compile_commands.json \
             --output build/sonar-compile_commands.json

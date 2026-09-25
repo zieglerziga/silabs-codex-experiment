@@ -27,7 +27,7 @@ class MergeCompileCommandsTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            count = merger.merge_compile_commands([first, second], output)
+            count = merger.merge_compile_commands([first, second], output, root)
 
             self.assertEqual(2, count)
             self.assertEqual(
@@ -40,11 +40,22 @@ class MergeCompileCommandsTests(unittest.TestCase):
 
     def test_rejects_invalid_entry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
             path = Path(directory) / "invalid.json"
             path.write_text("[{}]", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "invalid entry"):
-                merger.merge_compile_commands([path], path)
+                merger.merge_compile_commands([path], path, root)
+
+    def test_rejects_paths_outside_trusted_root(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "root"
+            root.mkdir()
+            outside = Path(directory) / "outside.json"
+            outside.write_text("[]", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "outside trusted root"):
+                merger.merge_compile_commands([outside], root / "output.json", root)
 
 
 if __name__ == "__main__":

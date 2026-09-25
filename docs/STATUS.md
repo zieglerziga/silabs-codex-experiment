@@ -67,14 +67,13 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 
 Current stage: SonarCloud PR #5 is open from
 `feature/sonarcloud-check` to `development`. The scanner now passes after the
-ARM compiler export fix, but the default quality gate reported uncovered new
-CI helper code and path-taint findings in the helper utilities.
+ARM compiler export fix, but the default quality gate reported path-taint
+findings in the CI helper utilities.
 
-Next actions: push the quality-gate remediation, then verify the replacement
+Next actions: push the trusted-root validation, then verify the replacement
 SonarCloud quality gate and the remaining PR checks.
 
-1. Commit and push the path canonicalization, helper refactor, and coverage
-   scope fix.
+1. Commit and push the trusted-root validation and regression tests.
 2. Verify the replacement SonarCloud analysis and quality gate.
 3. Mark the SonarCloud stage complete after the hosted checks pass.
 
@@ -462,11 +461,10 @@ Resolutions:
   senior platform/CI follow-up reviews reported no findings.
 - The scanner passed on run `36185514240`, but the SonarCloud quality gate
   initially failed on 0% new coverage and seven path-taint/cognitive-complexity
-  findings in the two CI helper scripts. The helpers now resolve their input
-  and output paths before I/O, split normalization into focused helpers, and
-  exclude CI-only scripts from the application coverage denominator while
-  retaining static analysis. `make verify`, `make workflow-check`,
-  `git diff --check`, and both requested Luna re-reviews pass; the remediation
-  is pending its hosted run. The final review follow-up also confirms that the
-  two line-level suppressions explain the intentional local CLI inputs and
-  remain limited to their individual reads.
+  findings in the two CI helper scripts. The helpers now resolve input and
+  output paths beneath an explicitly supplied trusted workspace root, reject
+  traversal and symlink escapes, and split normalization into focused helpers.
+  CI passes `$GITHUB_WORKSPACE` to both tools; 38 Python tests cover the new
+  rejection behavior. The coverage scope excludes CI-only scripts while
+  retaining static analysis. `make verify`, `make workflow-check`, and
+  `git diff --check` pass; the remediation is pending its hosted run.

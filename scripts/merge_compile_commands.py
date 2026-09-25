@@ -9,18 +9,33 @@ from pathlib import Path
 from typing import Any
 
 
-def merge_compile_commands(input_paths: list[Path], output_path: Path) -> int:
-    input_paths = [input_path.resolve(strict=True) for input_path in input_paths]
-    output_path = output_path.resolve()
+def _resolve_under_root(path: Path, root: Path, *, strict: bool) -> Path:
+    resolved = path.resolve(strict=strict)
+    try:
+        resolved.relative_to(root)
+    except ValueError as error:
+        raise ValueError(f"{path} is outside trusted root {root}") from error
+    return resolved
+
+
+def merge_compile_commands(
+    input_paths: list[Path],
+    output_path: Path,
+    root_path: Path,
+) -> int:
+    root = root_path.resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError(f"trusted root {root_path} is not a directory")
+    input_paths = [
+        _resolve_under_root(input_path, root, strict=True)
+        for input_path in input_paths
+    ]
+    output_path = _resolve_under_root(output_path, root, strict=False)
     merged: list[dict[str, Any]] = []
     seen_files: set[str] = set()
 
     for input_path in input_paths:
-        document: Any = json.loads(
-            input_path.read_text(  # NOSONAR: intentional local CLI input; CI fixes its path.
-                encoding="utf-8"
-            )
-        )
+        document: Any = json.loads(input_path.read_text(encoding="utf-8"))
         if not isinstance(document, list):
             raise ValueError(f"{input_path} must contain a JSON array")
 
@@ -42,11 +57,17 @@ def merge_compile_commands(input_paths: list[Path], output_path: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--root",
+        type=Path,
+        required=True,
+        help="Trusted root; input and output paths must resolve beneath it.",
+    )
     parser.add_argument("--input", type=Path, action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
     arguments = parser.parse_args()
 
-    count = merge_compile_commands(arguments.input, arguments.output)
+    count = merge_compile_commands(arguments.input, arguments.output, arguments.root)
     print(f"Merged {count} unique compilation command(s).")
     return 0
 

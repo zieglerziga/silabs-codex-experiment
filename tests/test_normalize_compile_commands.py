@@ -29,6 +29,7 @@ class NormalizeCompileCommandsTests(unittest.TestCase):
                     ("/workspace", "/runner/repository"),
                     ("/opt/simplicity_sdk", "/runner/sdk"),
                 ],
+                Path(directory),
             )
 
             self.assertEqual(5, applied)
@@ -43,7 +44,22 @@ class NormalizeCompileCommandsTests(unittest.TestCase):
             path.write_text("{}", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "JSON array"):
-                normalizer.normalize_compile_commands(path, path, [])
+                normalizer.normalize_compile_commands(path, path, [], Path(directory))
+
+    def test_rejects_paths_outside_trusted_root(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "root"
+            root.mkdir()
+            outside = Path(directory) / "outside.json"
+            outside.write_text("[]", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "outside trusted root"):
+                normalizer.normalize_compile_commands(
+                    outside,
+                    root / "output.json",
+                    [],
+                    root,
+                )
 
 
 if __name__ == "__main__":
