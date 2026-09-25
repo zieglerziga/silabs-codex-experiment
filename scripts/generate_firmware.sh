@@ -20,22 +20,32 @@ if ! command -v "$slc_cli" >/dev/null 2>&1 && [ ! -x "$slc_cli" ]; then
 fi
 
 # SLC configuration headers contain machine-readable comment annotations.
-# Recreate all generated content so unrelated formatters or stale incremental
-# state cannot make generation non-deterministic.
-cmake -E remove_directory "$project_dir/autogen"
-cmake -E remove_directory "$project_dir/config"
-cmake -E remove_directory "$project_dir/ble_scanner_cmake"
-cmake -E rm -f "$project_dir/main.c"
+# Generate and normalize a complete replacement before touching tracked output.
+staging_dir=$(mktemp -d "$project_dir/.slc-generate.XXXXXX")
+cleanup() {
+  cmake -E remove_directory "$staging_dir"
+}
+trap cleanup EXIT HUP INT TERM
+
+cmake -E make_directory "$staging_dir/inc" "$staging_dir/src"
+cmake -E copy "$project_file" "$staging_dir/ble_scanner.slcp"
+cmake -E copy "$project_dir/app.c" "$project_dir/app.h" "$staging_dir"
+cmake -E copy "$project_dir/inc/scan_tracker.h" "$staging_dir/inc"
+cmake -E copy "$project_dir/src/scan_tracker.c" "$staging_dir/src"
 
 "$slc_cli" generate \
-  --project-file "$project_file" \
+  --project-file "$staging_dir/ble_scanner.slcp" \
   --sdk "$SISDK_ROOT" \
-  --export-destination "$project_dir" \
+  --export-destination "$staging_dir" \
   --output-type cmake \
   --toolchain gcc \
   --overwrite-all \
   --require-clean-project
 
 python3 "$repo_root/scripts/normalize_slc_output.py" \
-  "$project_dir" \
+  "$staging_dir" \
   "$repo_root/cmake/arm-gcc-toolchain.cmake"
+
+python3 "$repo_root/scripts/install_generated_output.py" \
+  "$staging_dir" \
+  "$project_dir"

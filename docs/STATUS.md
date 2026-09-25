@@ -63,16 +63,15 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 
 ## Session handoff
 
-Current stage: Silicon Labs firmware integration is implemented and validated
-on the attached hardware. The external-SDK CMake build, flash flow, and bounded
-RTT capture are scripted; this stage is ready for its required two-agent review.
+Current stage: the first Silicon Labs firmware integration review is complete.
+All junior and senior findings have been fixed and verified locally and on the
+attached hardware; the fixes are ready for their required two-agent re-review.
 
 Next actions:
 
-1. Commit the verified firmware integration and run junior/senior reviews.
-2. Fix findings, commit them, and repeat both reviews until clean.
-3. Add and validate the container build, then review that stage.
-4. Review the existing pull-request workflow before opening the PR.
+1. Commit the firmware review fixes and repeat both reviews until clean.
+2. Add and validate the container build, then review that stage.
+3. Review the existing pull-request workflow before opening the PR.
 
 ## Verification log
 
@@ -140,7 +139,7 @@ Next actions:
 - Review-fix verification: `make test` passed 1/1, `make sanitize` passed 1/1,
   and `git diff --check` passed.
 
-### Silicon Labs firmware integration (review pending)
+### Silicon Labs firmware integration (initial review complete; re-review pending)
 
 - Added an SDK 2025.6.3 `.slcp` project for BRD4181A/EFR32MG21, generated CMake
   metadata, and a portable toolchain file.
@@ -154,3 +153,33 @@ Next actions:
 - Live hardware validation confirmed scan events, duplicate suppression,
   periodic refreshes, and summary output. The SDK tiny `printf` component was
   added after validation showed that the C library fallback buffered output.
+
+Initial review of `70218dd` found:
+
+- Junior: regeneration removed tracked output before SLC succeeded; host-path
+  validation and duplicate assignment checks were too narrow; `make clean`
+  omitted the nested firmware build.
+- Senior: generated `main.c` called application hooks without their prototype;
+  rotating addresses could bypass per-device limiting by continuously evicting
+  the 32-entry cache.
+
+Resolutions:
+
+- SLC now generates from staged source copies. Normalization, portable-path
+  validation, and prototype injection complete before a transactional installer
+  replaces the four generated outputs. A forced SLC failure returned non-zero
+  while SHA-256 hashes confirmed every existing generated file was unchanged.
+- Normalization rejects duplicate SDK/package assignments, checks a broader set
+  of POSIX and Windows host paths, and validates expected project-relative
+  source/include references. Path-dependent opaque Studio metadata is removed;
+  two consecutive generations produced identical tracked output.
+- `make clean` removes both host and nested firmware build directories.
+- Generated `main.c` reproducibly includes `app.h`.
+- The tracker now applies a 250 ms aggregate observation-log interval in
+  addition to the per-device interval. A 100-address churn regression emits
+  exactly four lines in one second while still counting all discoveries and
+  evictions.
+- Fix verification: `make verify` passed; the regenerated firmware built at
+  104432 bytes text, 2828 bytes data, and 95476 bytes BSS; hardware flash and a
+  five-second RTT capture passed, with live first-sighting lines spaced by at
+  least the aggregate limit.

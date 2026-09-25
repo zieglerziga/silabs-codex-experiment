@@ -17,6 +17,9 @@ The SDK and Silicon Labs tools stay outside this repository.
 - cumulative scan, discovery, eviction, suppression, and malformed-payload
   counters every 30 seconds.
 
+Observation output also has a global four-lines-per-second ceiling, so cache
+churn from rotating private addresses cannot turn RTT into a packet trace.
+
 RTT uses non-blocking mode so a disconnected or slow host cannot stall the
 Bluetooth event handler. This PoC holds an EM1 power-manager requirement while
 running because reliable RTT access is more important than battery behavior.

@@ -28,6 +28,7 @@
  *
  ******************************************************************************/
 #include "sl_component_catalog.h"
+#include "app.h"
 #include "sl_main_init.h"
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 #include "sl_power_manager.h"

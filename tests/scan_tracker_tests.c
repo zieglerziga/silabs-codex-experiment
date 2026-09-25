@@ -123,6 +123,27 @@ static void test_cache_evicts_the_oldest_device(void) {
   EXPECT_EQ_UINT(SCAN_TRACKER_CAPACITY + 1U, tracker.stats.discoveries);
 }
 
+static void test_address_churn_is_globally_rate_limited(void) {
+  scan_tracker_t tracker;
+  scan_tracker_init(&tracker, 0U);
+  unsigned int emitted_logs = 0U;
+
+  for (uint8_t index = 0U; index < 100U; ++index) {
+    const scan_observation_t observation =
+        observation_for(index, -60, NULL, 0U);
+    const scan_observation_result_t result =
+        scan_tracker_observe(&tracker, &observation, (uint32_t)index * 10U);
+    if (result.reason != SCAN_LOG_NONE) {
+      emitted_logs++;
+    }
+  }
+
+  EXPECT_EQ_UINT(4U, emitted_logs);
+  EXPECT_EQ_UINT(96U, tracker.stats.suppressed_logs);
+  EXPECT_EQ_UINT(100U, tracker.stats.discoveries);
+  EXPECT_EQ_UINT(100U - SCAN_TRACKER_CAPACITY, tracker.stats.cache_evictions);
+}
+
 static void test_timers_handle_uint32_wrap(void) {
   scan_tracker_t tracker;
   const uint32_t start = UINT32_MAX - 100U;
@@ -177,6 +198,7 @@ int main(void) {
   test_name_and_rssi_changes_are_rate_limited();
   test_complete_name_wins_and_malformed_data_is_counted();
   test_cache_evicts_the_oldest_device();
+  test_address_churn_is_globally_rate_limited();
   test_timers_handle_uint32_wrap();
   test_summary_snapshot_keeps_cumulative_counters();
   test_deadline_half_range_boundary();
