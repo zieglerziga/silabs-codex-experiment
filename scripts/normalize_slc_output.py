@@ -28,7 +28,7 @@ QUOTED_COLON_PATH_PATTERN = re.compile(
     r"\\\\[^\\/\s;]+[\\/][^\\/\s;]+[^\s;]*))"
 )
 UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
-    r"(?:^|[\s(;=]|-[IL])((?:"
+    r"(?:^|[\s(;,:=]|-[IL])((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
     r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
@@ -36,7 +36,7 @@ UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
     re.MULTILINE,
 )
 LINKER_ABSOLUTE_PATH_PATTERN = re.compile(
-    r"\b(?:GROUP|INCLUDE|INPUT|SEARCH_DIR)\s*(?:\(\s*)?((?:"
+    r"\b(?:GROUP|INCLUDE|INPUT|OUTPUT|SEARCH_DIR|STARTUP)\s*(?:\(\s*)?((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
     r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"

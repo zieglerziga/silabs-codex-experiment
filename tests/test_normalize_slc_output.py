@@ -64,6 +64,31 @@ class NormalizeSlcOutputTests(unittest.TestCase):
         )
         self.assertEqual("/opt/sdk", detected)
 
+    def test_detects_unquoted_posix_path_in_generator_expression(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.cmake"),
+            "target_include_directories(app PRIVATE $<BUILD_INTERFACE:/srv/sdk>)",
+        )
+        self.assertEqual("/srv/sdk>", detected)
+
+    def test_detects_unquoted_posix_path_in_linker_flags(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.cmake"), "set(LINK_FLAGS -Wl,-rpath,/opt/sdk)"
+        )
+        self.assertEqual("/opt/sdk", detected)
+
+    def test_detects_startup_path_in_linker_script(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.ld"), "STARTUP(/srv/toolchain/crt0.o)"
+        )
+        self.assertEqual("/srv/toolchain/crt0.o", detected)
+
+    def test_detects_output_path_in_linker_script(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.ld"), "OUTPUT(/srv/build/app.out)"
+        )
+        self.assertEqual("/srv/build/app.out", detected)
+
     def test_detects_unquoted_windows_unc_path(self) -> None:
         detected = normalizer.find_absolute_path(
             Path("generated.ld"), "SEARCH_DIR(\\\\builder\\sdk\\lib)"
