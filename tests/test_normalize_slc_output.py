@@ -101,11 +101,23 @@ class NormalizeSlcOutputTests(unittest.TestCase):
         )
         self.assertEqual("/srv/toolchain/libbar.a", detected)
 
+    def test_detects_forward_slash_unc_in_linker_list(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.ld"), "GROUP(relative.o, //builder/sdk/libbar.a)"
+        )
+        self.assertEqual("//builder/sdk/libbar.a", detected)
+
     def test_detects_unquoted_windows_unc_path(self) -> None:
         detected = normalizer.find_absolute_path(
             Path("generated.ld"), "SEARCH_DIR(\\\\builder\\sdk\\lib)"
         )
         self.assertEqual("\\\\builder\\sdk\\lib", detected)
+
+    def test_detects_unquoted_forward_slash_unc_path(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.cmake"), "set(SDK_MIRROR //builder/sdk/lib)"
+        )
+        self.assertEqual("//builder/sdk/lib", detected)
 
     def test_allows_cpp_comments(self) -> None:
         detected = normalizer.find_absolute_path(
