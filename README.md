@@ -143,6 +143,8 @@ Docker action references must use an immutable SHA-256 image digest.
   RTT, container, CI SDK preparation, formatting, workflow-audit, and
   verification flows.
 - `docs/ARCHITECTURE.md` explains design decisions.
+- `docs/DEVELOPMENT_PLAYBOOK.md` records the development process and PR/review
+  workflow; `docs/PROMPT_TEMPLATE.md` is a reusable project-start prompt.
 - `docs/STATUS.md` is the resumable human-readable project log.
 - `.github/workflows/pr.yml` defines pull-request quality and security gates.
 
