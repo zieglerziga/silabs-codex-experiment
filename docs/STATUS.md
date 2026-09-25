@@ -139,7 +139,7 @@ Next actions:
 - Review-fix verification: `make test` passed 1/1, `make sanitize` passed 1/1,
   and `git diff --check` passed.
 
-### Silicon Labs firmware integration (initial review complete; re-review pending)
+### Silicon Labs firmware integration (review complete)
 
 - Added an SDK 2025.6.3 `.slcp` project for BRD4181A/EFR32MG21, generated CMake
   metadata, and a portable toolchain file.
@@ -211,11 +211,15 @@ Resolutions:
   HTTPS URLs both have explicit allow regressions.
 - Generator-expression validation scans the full semicolon-separated interface
   list, preventing a forward-slash UNC entry from hiding beside relative paths.
+- Final junior and senior re-reviews reported no findings. `make verify` passes
+  24 Python path-normalization regressions plus the host C and sanitizer tests;
+  deterministic SLC regeneration also passes.
 
 ### Reproducible container build (implementation complete; review pending)
 
 - Added a digest-pinned Ubuntu 24.04 image containing only open-source host
-  validation and Arm GNU build dependencies.
+  validation and Arm GNU build dependencies. Apt resolves from the fixed
+  `20260925T090000Z` Ubuntu snapshot so package versions cannot drift.
 - Added one repeatable container script and Make targets for image creation,
   host verification, and a network-isolated firmware build with the external
   SDK mounted read-only.
@@ -225,7 +229,14 @@ Resolutions:
   host operations; proprietary tooling and hardware access are not baked into
   the image.
 - `make docker-image`, `make docker-verify`, and
-  `SISDK_ROOT=/home/andris/Work/simplicity_sdk make docker-firmware` passed.
+  `SISDK_ROOT=/path/to/simplicity_sdk make docker-firmware` passed.
   The container firmware compiled and linked all 145 build steps with Arm GNU
   13.2.1 while networking, capabilities, and root-filesystem writes were
   disabled.
+- Junior review found the host SDK path in this log, the omitted Docker
+  prerequisite, and mutable apt repositories. The path is now portable, Docker
+  is listed as an optional prerequisite, and both the certificate-bootstrap
+  image and runtime base are pinned by digest before apt uses the fixed Ubuntu
+  snapshot.
+- After the fixes, the image rebuilt from the snapshot and both container host
+  verification and the complete 145-step firmware build passed again.

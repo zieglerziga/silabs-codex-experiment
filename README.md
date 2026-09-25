@@ -29,6 +29,7 @@ running because reliable RTT access is more important than battery behavior.
 - Simplicity SDK `v2025.6.3` in a local Git checkout;
 - Silicon Labs SLC CLI 5.11.0 for regeneration;
 - Simplicity Commander for flashing and RTT capture;
+- Docker Engine and CLI for the optional container targets;
 - CMake, Ninja, Make, Python 3, and an Arm GNU toolchain; and
 - ClangFormat for formatting checks;
 - Git LFS when the SDK checkout contains pointer-form prebuilt archives; and
@@ -58,8 +59,9 @@ make verify
 make firmware
 ```
 
-The open-source build image pins its Ubuntu base by digest and contains the
-host validation tools plus the Arm GNU toolchain. Build and use it with:
+The open-source build image pins its Ubuntu base by digest and its apt archive
+to a dated Ubuntu snapshot. It contains the host validation tools plus the Arm
+GNU toolchain. Build and use it with:
 
 ```sh
 make docker-image
