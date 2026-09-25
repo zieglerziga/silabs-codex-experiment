@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help check test sanitize format format-check verify workflow-check generate-firmware prepare-sdk firmware docker-image docker-verify docker-firmware flash rtt clean
+.PHONY: help check test sanitize format format-check verify workflow-check generate-firmware prepare-sdk prepare-ci-sdk firmware docker-image docker-verify docker-firmware flash rtt clean
 
 RTT_SECONDS ?= 10
 
@@ -15,6 +15,7 @@ help:
 	@echo "  workflow-check  Run pinned actionlint and zizmor containers"
 	@echo "  generate-firmware  Regenerate the Silicon Labs CMake project"
 	@echo "  prepare-sdk  Materialize selected SDK Git LFS archives"
+	@echo "  prepare-ci-sdk  Fetch the exact public SDK revision used by CI"
 	@echo "  firmware  Build the EFR32MG21 firmware with the external SDK"
 	@echo "  docker-image  Build the pinned open-source build image"
 	@echo "  docker-verify  Run host verification in the build image"
@@ -51,6 +52,10 @@ prepare-sdk:
 	@test -n "$(SISDK_ROOT)" || (echo "SISDK_ROOT is required" >&2; exit 1)
 	@./scripts/prepare_sdk.py fetch "$(SISDK_ROOT)" \
 	  firmware/ble_scanner/ble_scanner_cmake/ble_scanner.cmake
+
+prepare-ci-sdk:
+	@test -n "$(CI_SISDK_ROOT)" || (echo "CI_SISDK_ROOT is required" >&2; exit 1)
+	@./scripts/prepare_ci_sdk.sh "$(CI_SISDK_ROOT)"
 
 firmware:
 	@./scripts/build_firmware.sh
