@@ -65,18 +65,19 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 
 ## Session handoff
 
-Current stage: SonarCloud PR analysis is implemented on
-`feature/sonarcloud-check`, based on `origin/development`.
+Current stage: SonarCloud PR #5 is open from
+`feature/sonarcloud-check` to `development`. The first hosted analysis reached
+SonarCloud but could not analyze the firmware C files because the runner did
+not have the ARM compiler path recorded in the Docker-generated compilation
+database.
 
-Next actions: run the workflow lint and host verification checks, then request
-the readability/documentation and embedded-correctness reviews before opening
-the pull request.
+Next actions: push the compiler-export fix, then verify the replacement
+SonarCloud run and the remaining PR checks.
 
-1. Run `make workflow-check`, host verification, and the firmware build path.
-2. Request independent readability/documentation and embedded-correctness
-   reviews, then resolve any findings.
-3. Open the SonarCloud pull request against `development` and verify its
-   checks.
+1. Commit and push the pinned compiler export and compilation-database path
+   normalization fix.
+2. Verify the replacement SonarCloud run and all PR checks.
+3. Mark the SonarCloud stage complete after the hosted checks pass.
 
 ## Verification log
 
@@ -448,9 +449,15 @@ Resolutions:
 - Added `.github/workflows/sonarcloud-bootstrap.yml` for PRs targeting
   `development`. It follows the existing no-secret bootstrap pattern and
   confirms that the SonarCloud project configuration and analysis workflow are
-  present before the full scan is registered on the base branch. The bootstrap
-  workflow must land in `development` before it can register future PR runs;
-  it cannot bootstrap its own first PR.
+  present before the full scan is registered on the base branch.
 - Junior readability review reported no findings. Senior platform review
-  confirmed the permissions and pinning, and recorded the base-branch
-  registration limitation above.
+  confirmed the permissions and pinning.
+- PR [#5](https://github.com/zieglerziga/silabs-codex-experiment/pull/5) was
+  opened against `development`. Bootstrap, workflow security, and all build
+  preparation steps passed, but hosted SonarCloud run `36184767499` skipped
+  144 ARM compilation units because the runner could not execute the
+  container-only `/opt/arm-gnu-toolchain` compiler path.
+- The follow-up exports the exact compiler from the pinned Docker image and
+  rewrites that path before the scanner runs. Local `make workflow-check`,
+  `git diff --check`, and all 36 Python tests pass. Junior readability and
+  senior platform/CI follow-up reviews reported no findings.

@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 60
     env:
       DOCKER_BUILDKIT: '1'
+      DOCKER_IMAGE: silabs-ble-scanner-dev:ubuntu24.04
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,6 +37,16 @@ jobs:
 
       - name: Build pinned firmware toolchain image
         run: make docker-image
+
+      - name: Export pinned compiler for SonarCloud
+        env:
+          ARM_GCC_ROOT: ${{ runner.temp }}/arm-gnu-toolchain
+        run: |
+          container_id=$(docker create "$DOCKER_IMAGE")
+          docker cp "$container_id:/opt/arm-gnu-toolchain" "$ARM_GCC_ROOT"
+          docker rm "$container_id" >/dev/null
+          test -x "$ARM_GCC_ROOT/bin/arm-none-eabi-gcc"
+          "$ARM_GCC_ROOT/bin/arm-none-eabi-gcc" -dumpfullversion
 
       - name: Build host compilation database
         run: |
@@ -52,13 +63,15 @@ jobs:
 
       - name: Normalize compilation database paths
         env:
+          ARM_GCC_ROOT: ${{ runner.temp }}/arm-gnu-toolchain
           CI_SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
         run: |
           python3 scripts/normalize_compile_commands.py \
             --input firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
             --output firmware/ble_scanner/ble_scanner_cmake/build/compile_commands.json \
             --replace /workspace "$GITHUB_WORKSPACE" \
-            --replace /opt/simplicity_sdk "$CI_SISDK_ROOT"
+            --replace /opt/simplicity_sdk "$CI_SISDK_ROOT" \
+            --replace /opt/arm-gnu-toolchain "$ARM_GCC_ROOT"
 
       - name: Merge compilation databases
         run: |
