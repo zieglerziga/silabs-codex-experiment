@@ -75,6 +75,9 @@ runs without network access, Linux capabilities, or a writable container root.
 SLC, Commander, and the SDK are deliberately not installed in the image;
 generation, flashing, and RTT capture remain explicit host operations. Host
 checks use `build/docker/` so native and container CMake caches never collide.
+Warnings are treated as errors for the hand-written firmware adapter and scan
+tracker; generated Silicon Labs and SDK sources retain their vendor warning
+policy.
 
 Regenerate the Silicon Labs project after changing `ble_scanner.slcp`:
 
@@ -89,8 +92,10 @@ make flash
 make rtt RTT_SECONDS=10
 ```
 
-The RTT transcript is also saved to `build/rtt.log`. Run `make help` for the
-complete command list.
+The RTT transcript is also saved to `build/rtt.log`. Capture succeeds only
+after the Bluetooth stack reports that scanning started. A session with no
+advertisements is reported distinctly without treating a quiet RF environment
+as a firmware failure. Run `make help` for the complete command list.
 
 ## Pull-request verification
 

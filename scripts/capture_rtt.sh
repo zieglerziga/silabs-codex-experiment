@@ -63,11 +63,7 @@ case "$status" in
     ;;
 esac
 
-if ! grep -Eq 'BLE scanner initialized|BLE scan started|^scan |^summary ' "$output"; then
-  cat "$output" >&2
-  echo "No application RTT data captured in ${duration_seconds}s" >&2
-  exit 1
-fi
+"$repo_root/scripts/validate_rtt_capture.py" "$output" "$duration_seconds"
 
 printf '\nCaptured RTT output:\n'
 sed -n '1,240p' "$output"

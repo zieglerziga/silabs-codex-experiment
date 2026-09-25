@@ -121,6 +121,20 @@ static void test_cache_evicts_the_oldest_device(void) {
   EXPECT_EQ_UINT(SCAN_TRACKER_CAPACITY, tracker.stats.active_devices);
   EXPECT_EQ_UINT(1U, tracker.stats.cache_evictions);
   EXPECT_EQ_UINT(SCAN_TRACKER_CAPACITY + 1U, tracker.stats.discoveries);
+
+  const scan_observation_t newest_original =
+      observation_for(SCAN_TRACKER_CAPACITY - 1U, -60, NULL, 0U);
+  const scan_observation_result_t retained =
+      scan_tracker_observe(&tracker, &newest_original, 1250U);
+  EXPECT_EQ_UINT(2U, retained.device.report_count);
+  EXPECT_EQ_UINT(1U, tracker.stats.cache_evictions);
+
+  const scan_observation_t oldest_original = observation_for(0U, -60, NULL, 0U);
+  const scan_observation_result_t evicted =
+      scan_tracker_observe(&tracker, &oldest_original, 1500U);
+  EXPECT_EQ_UINT(1U, evicted.device.report_count);
+  EXPECT_EQ_UINT(2U, tracker.stats.cache_evictions);
+  EXPECT_EQ_UINT(SCAN_TRACKER_CAPACITY + 2U, tracker.stats.discoveries);
 }
 
 static void test_address_churn_is_globally_rate_limited(void) {

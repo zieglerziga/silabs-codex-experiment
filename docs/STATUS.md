@@ -363,3 +363,26 @@ Resolutions:
   `36152609682` before the audit-only review fixes.
 - This status-only follow-up intentionally triggers the same checks again. The
   live PR check state remains authoritative before merge.
+
+### Strict test-architect P2/P3 remediation (implementation complete; review pending)
+
+- RTT capture validation now requires the stack-boot handler's `BLE scan
+  started` message; the earlier initialization-only message can no longer pass
+  the hardware smoke check. A quiet RF interval is reported separately from a
+  stack-start failure, with three host regression tests for those states.
+- The cache-capacity test now re-observes both the newest and oldest original
+  devices after overflow. It proves the newest entry retained its report count
+  and the actual oldest entry was evicted, rather than only checking counters.
+- A reproducibly installed managed CMake fragment applies `-Werror` to
+  hand-written `app.c` and `scan_tracker.c` firmware compilation only. SDK and
+  generated sources retain the Silicon Labs warning policy, and firmware builds
+  fail if the managed fragment drifts from its source template.
+- Local verification passed `make verify` with 32 Python tests, strict C host
+  builds, tests, and sanitizers; `make workflow-check`; `make actions-audit`;
+  and the complete 145-step containerized firmware build with GCC 12.2.1.
+  Generated Ninja rules contained `-Werror` on exactly the two hand-written
+  firmware translation units and not on an inspected SDK translation unit.
+- The freshly built image was flashed to the attached BRD4181A/BRD4001A. A
+  10-second RTT capture passed only after observing `BLE scan started` and then
+  recorded multiple real advertisement lines; an earlier capture containing
+  probe output but no stack-start evidence correctly failed.

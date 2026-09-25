@@ -42,6 +42,10 @@ cmake -E copy "$project_dir/src/scan_tracker.c" "$staging_dir/src"
   --overwrite-all \
   --require-clean-project
 
+cmake -E copy \
+  "$repo_root/cmake/ble-scanner-project.cmake" \
+  "$staging_dir/ble_scanner_cmake/ble_scanner_project.cmake"
+
 python3 "$repo_root/scripts/normalize_slc_output.py" \
   "$staging_dir" \
   "$repo_root/cmake/arm-gcc-toolchain.cmake"
