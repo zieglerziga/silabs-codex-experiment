@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help check test sanitize format format-check verify workflow-check generate-firmware prepare-sdk prepare-ci-sdk firmware docker-image docker-verify docker-firmware flash rtt clean
+.PHONY: help check test sanitize format format-check verify workflow-check actions-audit generate-firmware prepare-sdk prepare-ci-sdk firmware docker-image docker-verify docker-firmware flash rtt clean
 
 RTT_SECONDS ?= 10
 
@@ -13,6 +13,7 @@ help:
 	@echo "  format-check  Verify project C source formatting"
 	@echo "  verify  Run all host-side checks used before a commit"
 	@echo "  workflow-check  Run pinned actionlint and zizmor containers"
+	@echo "  actions-audit  Compare action pins with latest stable releases"
 	@echo "  generate-firmware  Regenerate the Silicon Labs CMake project"
 	@echo "  prepare-sdk  Materialize selected SDK Git LFS archives"
 	@echo "  prepare-ci-sdk  Fetch the exact public SDK revision used by CI"
@@ -44,6 +45,9 @@ verify:
 
 workflow-check:
 	@./scripts/validate_workflows.sh
+
+actions-audit:
+	@./scripts/audit_github_actions.py
 
 generate-firmware:
 	@./scripts/generate_firmware.sh

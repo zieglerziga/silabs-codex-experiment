@@ -323,3 +323,27 @@ Resolutions:
   `Secret scan`. Bootstrap run `36151070718` also passed. This status-only
   follow-up intentionally triggers the same checks again; the live PR check
   state remains authoritative before merge.
+
+### GitHub Action stable-version refresh (implementation complete; review pending)
+
+- Audited all seven `uses:` entries and four unique third-party actions against
+  each upstream repository's official latest non-draft, non-prerelease GitHub
+  release and resolved tag commit.
+- Upgraded all four `actions/checkout` references from v4.2.2 to v7.0.1 at
+  immutable commit `3d3c42e5aac5ba805825da76410c181273ba90b1`.
+- Upgraded `actions/setup-go` from v6.0.0 to v7.0.0 at immutable commit
+  `b7ad1dad31e06c5925ef5d2fc7ad053ef454303e`.
+- Confirmed `zizmorcore/zizmor-action` v0.6.4 and
+  `trufflesecurity/trufflehog` v3.97.9 were already the latest stable releases
+  at their existing immutable commits. Their selected zizmor v1.30.1 and
+  TruffleHog v3.97.9 tool versions are also current.
+- Added `make actions-audit` to repeat the official release/tag/SHA comparison
+  without making normal pull-request checks depend on mutable upstream release
+  timing.
+- The audit rejects mutable or uncommented external action references, resolves
+  lightweight and annotated release tags to commits, and has host tests for
+  discovery, rejection, tag resolution, and outdated-result handling.
+- Platform review confirmed both v7 migrations use Node 24 and require no input
+  changes for this `pull_request` workflow on the hosted Ubuntu 24.04 runner.
+  `make actions-audit`, `make workflow-check`, and `make verify` (28 Python
+  tests plus the existing strict C, test, and sanitizer gates) passed locally.
