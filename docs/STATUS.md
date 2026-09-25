@@ -190,3 +190,7 @@ Resolutions:
   LFS and GNU `timeout` prerequisites. The path check now validates quoted and
   unquoted POSIX/Windows paths and has Python regression coverage; the README
   lists both tools.
+- Follow-up review identified two remaining path forms: Windows UNC paths and
+  unquoted paths in linker scripts. Detection now covers every generated text
+  type, distinguishes C++ comments from network paths, and has drive-letter,
+  UNC, and linker-script regression cases.
