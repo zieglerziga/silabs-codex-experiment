@@ -19,9 +19,9 @@ and protect pull requests with free/open-source GitHub Actions checks.
 | Mainboard | BRD4001A Rev. A01 |
 | Radio board | BRD4181A Rev. A01 |
 | Device | EFR32MG21A010F1024IM32 (1 MiB flash, 96 KiB SRAM) |
-| Local SDK | `/home/andris/Work/simplicity_sdk`, tag `v2025.6.3` |
+| Local SDK | `SISDK_ROOT` environment variable, tag `v2025.6.3` |
 | Commander | Simplicity Commander 1v25p0b1995 |
-| Debug adapter | SEGGER J-Link Pro OB, VCOM `/dev/ttyACM1` |
+| Debug adapter | SEGGER J-Link Pro OB with host-enumerated VCOM |
 
 The local SDK checkout had a pre-existing untracked Python `__pycache__`; the
 project must not modify or clean that external checkout.
@@ -58,17 +58,26 @@ files to index.
 
 Next actions:
 
-1. Commit this bootstrap documentation.
-2. Inventory the relevant `devs-refd-ble-remote` build files without adopting
+1. Inventory the relevant `devs-refd-ble-remote` build files without adopting
    its target hardware.
-3. Inspect the installed SDK examples and project-generation metadata for
+2. Inspect the installed SDK examples and project-generation metadata for
    BRD4181A / EFR32MG21.
 
 ## Verification log
 
 - `commander adapter probe`: detected WSTK6006A with BRD4001A and BRD4181A.
 - `commander device info`: detected `EFR32MG21A010F1024IM32` revision A1.
-- `git -C /home/andris/Work/simplicity_sdk describe --tags --always`:
-  `v2025.6.3`.
+- `git -C "${SISDK_ROOT}" describe --tags --always`: `v2025.6.3`.
 - `codegraph status .`: initialized, zero source files at bootstrap, index is
   up to date.
+
+## Review log
+
+### Bootstrap documentation (`dfe017a`)
+
+- Junior readability review: requested removal of host-specific SDK/VCOM paths
+  and correction of a stale handoff action.
+- Senior embedded review: confirmed the hardware and SDK facts; independently
+  reported the same portability and stale-handoff issues.
+- Resolution: use `SISDK_ROOT`, describe VCOM enumeration generically, and make
+  the handoff begin with the actual next task.
