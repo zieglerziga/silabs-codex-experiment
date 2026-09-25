@@ -287,7 +287,7 @@ Resolutions:
 - This status-only follow-up intentionally triggers the same checks again. The
   live PR check state is authoritative before merge.
 
-### Firmware CI (implementation complete; review pending)
+### Firmware CI (complete)
 
 - Added a dedicated `Firmware build` job for pull requests, development pushes,
   and manual workflow runs on `ubuntu-24.04` with read-only permissions and a
@@ -306,3 +306,20 @@ Resolutions:
   external directory, resolved the pinned commit, materialized all 16 selected
   archives, and completed the 145-step network-isolated firmware build with
   GCC 12.2.1. `make verify` and `make workflow-check` also passed.
+- Junior readability/documentation review of commit `4fa58d3` reported no
+  findings after checking Make target discoverability, shell clarity, failure
+  behavior, reproduction guidance, and status-log continuity. The reviewer ran
+  `make help`, `sh -n scripts/prepare_ci_sdk.sh`, `make verify`,
+  `make workflow-check`, a relative-path rejection check, and
+  `git diff --check 4fa58d3^ 4fa58d3`.
+- Senior embedded/CI review of commit `4fa58d3` reported no findings. It
+  independently confirmed the exact SDK tag and commit, 16-archive selective
+  LFS fetch, BRD4181A/EFR32MG21 generated target, fork-safe workflow
+  permissions, read-only SDK mount, network-disabled build runtime, and hosted
+  build log through `[145/145] Linking C executable
+  default_config/ble_scanner.out`.
+- Pull-request verification run `36151070655` passed at commit `4fa58d3`:
+  `Firmware build` (3m09s), `Host checks`, `Workflow security`, and
+  `Secret scan`. Bootstrap run `36151070718` also passed. This status-only
+  follow-up intentionally triggers the same checks again; the live PR check
+  state remains authoritative before merge.
