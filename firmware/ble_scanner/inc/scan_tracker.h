@@ -12,6 +12,7 @@ extern "C" {
 #define SCAN_TRACKER_CAPACITY 32U
 #define SCAN_TRACKER_ADDRESS_SIZE 6U
 #define SCAN_TRACKER_NAME_CAPACITY 25U
+#define SCAN_TRACKER_GLOBAL_LOG_INTERVAL_MS 250U
 #define SCAN_TRACKER_MIN_LOG_INTERVAL_MS 1000U
 #define SCAN_TRACKER_REFRESH_INTERVAL_MS 10000U
 #define SCAN_TRACKER_SUMMARY_INTERVAL_MS 30000U
@@ -58,6 +59,7 @@ typedef struct {
 
 typedef struct {
   bool occupied;
+  bool logged;
   uint8_t address[SCAN_TRACKER_ADDRESS_SIZE];
   uint8_t address_type;
   int8_t rssi;
@@ -73,6 +75,8 @@ typedef struct {
   scan_tracker_entry_t entries[SCAN_TRACKER_CAPACITY];
   scan_tracker_stats_t stats;
   uint32_t next_summary_ms;
+  uint32_t last_log_ms;
+  bool has_logged;
 } scan_tracker_t;
 
 void scan_tracker_init(scan_tracker_t *tracker, uint32_t now_ms);

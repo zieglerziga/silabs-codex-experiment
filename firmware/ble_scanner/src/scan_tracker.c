@@ -168,20 +168,14 @@ scan_tracker_observe(scan_tracker_t *tracker,
     memcpy(entry->address, observation->address, SCAN_TRACKER_ADDRESS_SIZE);
     entry->address_type = observation->address_type;
     entry->rssi = observation->rssi;
-    entry->last_logged_rssi = observation->rssi;
     entry->last_seen_ms = now_ms;
-    entry->last_logged_ms = now_ms;
     entry->report_count = 1U;
     if (parsed_name.present) {
       memcpy(entry->name, parsed_name.value, sizeof(entry->name));
-      memcpy(entry->last_logged_name, parsed_name.value,
-             sizeof(entry->last_logged_name));
     }
     tracker->stats.discoveries++;
     result.reason = SCAN_LOG_FIRST_SEEN;
   } else {
-    const uint32_t since_last_log = elapsed_ms(now_ms, entry->last_logged_ms);
-
     entry->rssi = observation->rssi;
     entry->last_seen_ms = now_ms;
     if (entry->report_count != UINT32_MAX) {
@@ -191,29 +185,43 @@ scan_tracker_observe(scan_tracker_t *tracker,
       memcpy(entry->name, parsed_name.value, sizeof(entry->name));
     }
 
-    const bool name_changed = strcmp(entry->name, entry->last_logged_name) != 0;
-    const bool rssi_changed =
-        rssi_distance(entry->rssi, entry->last_logged_rssi) >=
-        SCAN_TRACKER_RSSI_DELTA_DB;
-    const bool rate_limit_expired =
-        since_last_log >= SCAN_TRACKER_MIN_LOG_INTERVAL_MS;
-
-    if (rate_limit_expired && name_changed) {
-      result.reason = SCAN_LOG_NAME_CHANGED;
-    } else if (rate_limit_expired && rssi_changed) {
-      result.reason = SCAN_LOG_RSSI_CHANGED;
-    } else if (since_last_log >= SCAN_TRACKER_REFRESH_INTERVAL_MS) {
-      result.reason = SCAN_LOG_PERIODIC_REFRESH;
+    if (!entry->logged) {
+      result.reason = SCAN_LOG_FIRST_SEEN;
     } else {
-      tracker->stats.suppressed_logs++;
-    }
+      const uint32_t since_last_log = elapsed_ms(now_ms, entry->last_logged_ms);
+      const bool name_changed =
+          strcmp(entry->name, entry->last_logged_name) != 0;
+      const bool rssi_changed =
+          rssi_distance(entry->rssi, entry->last_logged_rssi) >=
+          SCAN_TRACKER_RSSI_DELTA_DB;
+      const bool rate_limit_expired =
+          since_last_log >= SCAN_TRACKER_MIN_LOG_INTERVAL_MS;
 
-    if (result.reason != SCAN_LOG_NONE) {
-      entry->last_logged_ms = now_ms;
-      entry->last_logged_rssi = entry->rssi;
-      memcpy(entry->last_logged_name, entry->name,
-             sizeof(entry->last_logged_name));
+      if (rate_limit_expired && name_changed) {
+        result.reason = SCAN_LOG_NAME_CHANGED;
+      } else if (rate_limit_expired && rssi_changed) {
+        result.reason = SCAN_LOG_RSSI_CHANGED;
+      } else if (since_last_log >= SCAN_TRACKER_REFRESH_INTERVAL_MS) {
+        result.reason = SCAN_LOG_PERIODIC_REFRESH;
+      }
     }
+  }
+
+  const bool global_limit_expired =
+      !tracker->has_logged || (elapsed_ms(now_ms, tracker->last_log_ms) >=
+                               SCAN_TRACKER_GLOBAL_LOG_INTERVAL_MS);
+
+  if ((result.reason != SCAN_LOG_NONE) && global_limit_expired) {
+    entry->logged = true;
+    entry->last_logged_ms = now_ms;
+    entry->last_logged_rssi = entry->rssi;
+    memcpy(entry->last_logged_name, entry->name,
+           sizeof(entry->last_logged_name));
+    tracker->has_logged = true;
+    tracker->last_log_ms = now_ms;
+  } else {
+    result.reason = SCAN_LOG_NONE;
+    tracker->stats.suppressed_logs++;
   }
 
   copy_snapshot(&result.device, entry);

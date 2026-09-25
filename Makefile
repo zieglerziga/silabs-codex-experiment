@@ -56,3 +56,4 @@ rtt:
 
 clean:
 	@cmake -E remove_directory build
+	@cmake -E remove_directory firmware/ble_scanner/ble_scanner_cmake/build

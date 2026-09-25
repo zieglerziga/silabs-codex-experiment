@@ -27,6 +27,7 @@ firmware against Simplicity SDK.
 | --- | --- |
 | Device cache | 32 entries, oldest-seen entry evicted when full |
 | Local name | 24 printable characters plus terminator |
+| Aggregate observation log rate | At most four lines per second |
 | Per-device change log rate | At most once per second |
 | Unchanged-device refresh | Once per ten seconds |
 | Summary | Once per 30 seconds |
@@ -44,7 +45,9 @@ Bluetooth system, bare-metal main loop, sleeptimer, RTT iostream, and the SDK's
 tiny `printf` implementation. SLC-generated source, configuration, and CMake
 metadata are committed so ordinary firmware builds do not require SLC CLI.
 Generated CMake reads the external SDK from `SISDK_ROOT`; a normalization script
-rejects host-specific absolute paths.
+rejects host-specific absolute paths. The normalizer also removes SLC's opaque,
+path-dependent Studio metadata comment; `ble_scanner.slcp` remains the project
+source of truth and consecutive generations are byte-for-byte stable.
 
 The scanner uses passive 1M PHY scanning with a 100 ms interval and 50 ms
 window. RTT channel 0 is configured in non-blocking mode. The application keeps

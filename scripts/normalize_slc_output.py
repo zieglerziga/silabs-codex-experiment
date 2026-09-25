@@ -11,14 +11,32 @@ import shutil
 
 SDK_PATTERN = re.compile(r'^set\(SDK_PATH\s+"[^"]*"\)\s*$', re.MULTILINE)
 PACKAGE_PATTERN = re.compile(r'^set\(PKG_PATH\s+"[^"]*"\)\s*$', re.MULTILINE)
+STUDIO_METADATA_PATTERN = re.compile(
+    r"^# BEGIN_SIMPLICITY_STUDIO_METADATA=.*=END_SIMPLICITY_STUDIO_METADATA\s*$",
+    re.MULTILINE,
+)
 HOST_PATH_PATTERN = re.compile(
-    r"(?:/home/[^/]+|/Users/[^/]+|[A-Za-z]:[/\\]Users[/\\][^/\\]+)"
+    r"(?:"
+    r"/(?:home|Users|root|tmp|opt|mnt|media|workspace|workspaces)/[^\s\"']+"
+    r"|/var/(?:folders|tmp)/[^\s\"']+"
+    r"|[A-Za-z]:[/\\][^\s\"']+"
+    r")"
 )
 PORTABLE_SDK_BLOCK = """if(NOT DEFINED ENV{SISDK_ROOT} OR \"$ENV{SISDK_ROOT}\" STREQUAL \"\")
   message(FATAL_ERROR \"SISDK_ROOT must point to Simplicity SDK v2025.6.3\")
 endif()
 set(SDK_PATH \"$ENV{SISDK_ROOT}\")"""
 PORTABLE_PACKAGE_LINE = 'set(PKG_PATH "$ENV{SILABS_PACKAGE_ROOT}")'
+PORTABLE_METADATA_LINE = (
+    "# Simplicity Studio metadata removed: ble_scanner.slcp is the source of truth."
+)
+APP_HEADER_INCLUDE = '#include "app.h"'
+MAIN_INCLUDE_MARKER = '#include "sl_component_catalog.h"'
+EXPECTED_PROJECT_REFERENCES = (
+    '"../app.c"',
+    '"../src/scan_tracker.c"',
+    '"../inc"',
+)
 TEXT_SUFFIXES = {
     ".c",
     ".cmake",
@@ -34,10 +52,33 @@ TEXT_SUFFIXES = {
 def replace_exactly_once(
     pattern: re.Pattern[str], replacement: str, source: str, label: str, path: Path
 ) -> str:
-    updated, replacements = pattern.subn(replacement, source, count=1)
+    replacements = len(pattern.findall(source))
     if replacements != 1:
-        raise SystemExit(f"expected one {label} assignment in {path}")
-    return updated
+        raise SystemExit(
+            f"expected exactly one {label} assignment in {path}, found {replacements}"
+        )
+    return pattern.sub(replacement, source)
+
+
+def add_app_header(project_dir: Path) -> None:
+    main_source = project_dir / "main.c"
+    source = main_source.read_text(encoding="utf-8")
+    include_count = source.count(APP_HEADER_INCLUDE)
+    if include_count == 0:
+        marker_count = source.count(MAIN_INCLUDE_MARKER)
+        if marker_count != 1:
+            raise SystemExit(
+                f"expected one main include marker in {main_source}, found {marker_count}"
+            )
+        source = source.replace(
+            MAIN_INCLUDE_MARKER,
+            f"{MAIN_INCLUDE_MARKER}\n{APP_HEADER_INCLUDE}",
+        )
+        main_source.write_text(source, encoding="utf-8")
+    elif include_count != 1:
+        raise SystemExit(
+            f"expected at most one app header include in {main_source}, found {include_count}"
+        )
 
 
 def generated_text_files(project_dir: Path) -> list[Path]:
@@ -68,9 +109,22 @@ def normalize(project_dir: Path, toolchain_template: Path) -> None:
     source = replace_exactly_once(
         PACKAGE_PATTERN, PORTABLE_PACKAGE_LINE, source, "PKG_PATH", inventory
     )
+    source = replace_exactly_once(
+        STUDIO_METADATA_PATTERN,
+        PORTABLE_METADATA_LINE,
+        source,
+        "Simplicity Studio metadata block",
+        inventory,
+    )
+    for reference in EXPECTED_PROJECT_REFERENCES:
+        if source.count(reference) != 1:
+            raise SystemExit(
+                f"expected one portable project reference {reference} in {inventory}"
+            )
     inventory.write_text(source, encoding="utf-8")
 
     shutil.copyfile(toolchain_template, cmake_dir / "toolchain.cmake")
+    add_app_header(project_dir)
 
     for generated_file in generated_text_files(project_dir):
         normalize_whitespace(generated_file)
