@@ -35,12 +35,20 @@ UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
     r")[^\s;)]*)",
     re.MULTILINE,
 )
-LINKER_ABSOLUTE_PATH_PATTERN = re.compile(
-    r"\b(?:GROUP|INCLUDE|INPUT|OUTPUT|SEARCH_DIR|STARTUP)\s*(?:\(\s*)?((?:"
+LINKER_SINGLE_PATH_PATTERN = re.compile(
+    r"\b(?:INCLUDE|OUTPUT|SEARCH_DIR|STARTUP)\s*(?:\(\s*)?((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
     r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
     r")[^\s;)]*)"
+)
+LINKER_LIST_PATTERN = re.compile(r"\b(?:GROUP|INPUT)\s*\(([^)]*)\)", re.MULTILINE)
+LINKER_OPERAND_PATH_PATTERN = re.compile(
+    r"(?:^|[\s,(])((?:"
+    r"/(?![/*\s])"
+    r"|[A-Za-z]:[/\\]"
+    r"|\\\\[^\\/\s,;]+[\\/][^\\/\s,;)]+"
+    r")[^\s,;)]*)"
 )
 PORTABLE_SDK_BLOCK = """if(NOT DEFINED ENV{SISDK_ROOT} OR \"$ENV{SISDK_ROOT}\" STREQUAL \"\")
   message(FATAL_ERROR \"SISDK_ROOT must point to Simplicity SDK v2025.6.3\")
@@ -128,9 +136,13 @@ def find_absolute_path(path: Path, content: str) -> str | None:
                 return path_match.group(1)
 
     if path.suffix == ".ld":
-        match = LINKER_ABSOLUTE_PATH_PATTERN.search(content)
+        match = LINKER_SINGLE_PATH_PATTERN.search(content)
         if match is not None:
             return match.group(1)
+        for command_match in LINKER_LIST_PATTERN.finditer(content):
+            operand_match = LINKER_OPERAND_PATH_PATTERN.search(command_match.group(1))
+            if operand_match is not None:
+                return operand_match.group(1)
     elif path.suffix in {".cmake", ".json", ".properties", ".txt"}:
         match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(content)
         if match is not None:

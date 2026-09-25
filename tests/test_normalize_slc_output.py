@@ -89,6 +89,18 @@ class NormalizeSlcOutputTests(unittest.TestCase):
         )
         self.assertEqual("/srv/build/app.out", detected)
 
+    def test_detects_later_input_path_in_linker_script(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.ld"), "INPUT(relative.o /srv/toolchain/libsupport.a)"
+        )
+        self.assertEqual("/srv/toolchain/libsupport.a", detected)
+
+    def test_detects_later_group_path_in_linker_script(self) -> None:
+        detected = normalizer.find_absolute_path(
+            Path("generated.ld"), "GROUP(libfoo.a, /srv/toolchain/libbar.a)"
+        )
+        self.assertEqual("/srv/toolchain/libbar.a", detected)
+
     def test_detects_unquoted_windows_unc_path(self) -> None:
         detected = normalizer.find_absolute_path(
             Path("generated.ld"), "SEARCH_DIR(\\\\builder\\sdk\\lib)"
