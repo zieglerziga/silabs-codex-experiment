@@ -183,3 +183,10 @@ Resolutions:
   104432 bytes text, 2828 bytes data, and 95476 bytes BSS; hardware flash and a
   five-second RTT capture passed, with live first-sighting lines spaced by at
   least the aggregate limit.
+- Senior re-review: no findings; both application-prototype and cache-churn
+  issues are resolved without timer-wrap regressions.
+- Junior re-review: requested detection of arbitrary absolute generated paths
+  instead of common-root enumeration, plus documentation of conditional Git
+  LFS and GNU `timeout` prerequisites. The path check now validates quoted and
+  unquoted POSIX/Windows paths and has Python regression coverage; the README
+  lists both tools.

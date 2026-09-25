@@ -9,6 +9,7 @@ for script in scripts/*.sh; do
 done
 
 python3 -c 'import pathlib; [compile(path.read_text(), str(path), "exec") for path in pathlib.Path("scripts").glob("*.py")]'
+python3 -m unittest discover -s tests -p 'test_*.py'
 
 make format-check
 make check
