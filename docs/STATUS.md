@@ -247,7 +247,7 @@ Resolutions:
 - Junior and senior re-reviews reported no findings. `make docker-verify` and
   the complete 145-step container firmware build passed with GCC 12.2.1.
 
-### Pull-request CI (finding fixed; re-review pending)
+### Pull-request CI (complete; reviews passed)
 
 - Bootstrap commit `ece465c` is pushed to both `main` and `development`, so
   GitHub registers pull-request automation before this feature branch opens a
@@ -269,3 +269,10 @@ Resolutions:
   Actions checkout. The workflow now fetches history and passes the exact PR
   base/head SHAs to `make verify`, which checks their merge-base diff; local
   calls retain the working-tree check.
+- Junior and senior re-reviews reported no findings. `make workflow-check`,
+  local and range-aware `make verify` runs, and an explicit whitespace check
+  against `origin/development...HEAD` passed. Supplying only one verification
+  SHA fails fast with status 2.
+- The feature branch is backed up as `origin/feature/ble-rtt-scanner`; it also
+  contains the current `development` bootstrap baseline so the PR event can
+  execute both the bootstrap and full verification workflows.
