@@ -9,6 +9,10 @@ advertisements and reports useful, rate-controlled observations through SEGGER
 RTT. The repository must build through CMake/Make/Docker, document its setup,
 and protect pull requests with free/open-source GitHub Actions checks.
 
+All repeatable operations are captured as scripts and surfaced through the
+root Makefile. Commits use scoped Conventional Commit messages, and each agent
+stage leaves a human-readable status entry.
+
 ## Confirmed environment
 
 | Item | Value |
@@ -49,7 +53,7 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Detect attached hardware and installed development tools.
 - [x] Create and push `development`; create the feature branch from it.
 - [x] Initialize the local CodeGraph index.
-- [ ] Capture the reference-project architecture and decide repository layout.
+- [x] Capture the reference-project architecture and decide repository layout.
 - [ ] Add the Silicon Labs project, BLE scanner, RTT logging, and host tests.
 - [ ] Add CMake, Make, and Docker build workflows.
 - [ ] Add pull-request security and quality workflows.
@@ -59,16 +63,15 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 
 ## Session handoff
 
-Current stage: repository bootstrap and discovery. The local CodeGraph database
-is initialized and intentionally ignored by Git; it currently has no source
-files to index.
+Current stage: portable scan tracking implementation. The architecture follows
+the reference project's separation of project code, build support, and docs,
+but the SDK remains external and target selection comes from attached hardware.
 
 Next actions:
 
-1. Inventory the relevant `devs-refd-ble-remote` build files without adopting
-   its target hardware.
-2. Inspect the installed SDK examples and project-generation metadata for
-   BRD4181A / EFR32MG21.
+1. Complete the two-agent review of the portable scan tracker.
+2. Add the `.slcp` manifest and thin Silicon Labs event/RTT adapter.
+3. Generate a relocatable firmware CMake project with SLC CLI 5.11.0.
 
 ## Verification log
 
@@ -90,3 +93,27 @@ Next actions:
   the handoff begin with the actual next task.
 - Senior re-review: requested an explicit portable setup example for
   `SISDK_ROOT`; the example above resolves it without committing a host path.
+
+### Reference architecture research
+
+- Luna research identified per-project `.slcp` manifests, generated CMake, a
+  shared Make wrapper, CMake presets, and root Docker orchestration as the useful
+  patterns in `devs-refd-ble-remote`.
+- The reference's copied SDK and generated absolute SDK path were explicitly
+  rejected. This project will keep SDK `v2025.6.3` external and use
+  `SISDK_ROOT`.
+
+### Portable scan tracker
+
+- Added a fixed 32-entry cache with oldest-seen eviction, safe AD-structure
+  parsing, name/RSSI change detection, per-device log rate limiting, periodic
+  refresh, and cumulative summaries.
+- Added SDK-independent CMake/CTest coverage for duplicate suppression, delayed
+  name/RSSI changes, malformed payloads, cache eviction, and timer wraparound.
+- Added repeatable `make check`, `make test`, `make sanitize`, and formatting
+  targets implemented by scripts under `scripts/`.
+- `make check`: passed with GCC 16.2.1 and warnings treated as errors.
+- `make test`: 1/1 CTest passed.
+- `make sanitize`: 1/1 CTest passed with AddressSanitizer and
+  UndefinedBehaviorSanitizer.
+- `make format-check`: passed with the host clang-format.
