@@ -201,3 +201,21 @@ Resolutions:
 - Final path-review follow-up adds unquoted comma/colon CMake contexts and GNU
   ld `STARTUP`/`OUTPUT` directives, with a regression case for every reported
   escape.
+
+### Reproducible container build (implementation complete; review pending)
+
+- Added a digest-pinned Ubuntu 24.04 image containing only open-source host
+  validation and Arm GNU build dependencies.
+- Added one repeatable container script and Make targets for image creation,
+  host verification, and a network-isolated firmware build with the external
+  SDK mounted read-only.
+- Container host checks use a dedicated `build/docker` tree, preventing CMake
+  cache paths from colliding with native host checks.
+- SLC generation, Commander flashing, and RTT capture intentionally remain
+  host operations; proprietary tooling and hardware access are not baked into
+  the image.
+- `make docker-image`, `make docker-verify`, and
+  `SISDK_ROOT=/home/andris/Work/simplicity_sdk make docker-firmware` passed.
+  The container firmware compiled and linked all 145 build steps with Arm GNU
+  13.2.1 while networking, capabilities, and root-filesystem writes were
+  disabled.
