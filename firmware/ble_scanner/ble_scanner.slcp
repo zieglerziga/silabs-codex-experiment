@@ -1,0 +1,55 @@
+# Silicon Labs Project Configuration Tools: slcp, v0, Component selection file.
+project_name: ble_scanner
+label: BLE RTT Scanner
+description: >
+  Passive Bluetooth Low Energy scanner with bounded, rate-controlled SEGGER
+  RTT logging.
+category: Bluetooth Examples
+package: Bluetooth
+quality: production
+
+filter:
+  - name: Wireless Technology
+    value: [Bluetooth]
+  - name: Device Type
+    value: [SoC]
+
+sdk:
+  id: simplicity_sdk
+  version: 2025.6.3
+
+component:
+  - id: EFR32MG21A010F1024IM32
+  - id: app_assert
+  - id: bluetooth_feature_legacy_scanner
+  - id: bluetooth_feature_system
+  - id: bluetooth_stack
+  - id: brd4001a
+  - id: brd4181a
+  - id: clock_manager
+  - id: device_init
+  - id: iostream_rtt
+  - id: mpu
+  - id: printf
+  - id: rail_util_pti
+  - id: sl_main
+  - id: sleeptimer
+
+source:
+  - path: app.c
+  - path: src/scan_tracker.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+  - path: inc
+    file_list:
+      - path: scan_tracker.h
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2752"
+
+tag:
+  - hardware:rf:band:2400

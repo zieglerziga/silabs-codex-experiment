@@ -23,6 +23,11 @@ git -C "$repo_root" ls-files --cached --others --exclude-standard \
   '*.c' '*.h' |
 while IFS= read -r source_file; do
   [ -n "$source_file" ] || continue
+  case "$source_file" in
+    firmware/ble_scanner/autogen/*|firmware/ble_scanner/config/*|firmware/ble_scanner/main.c)
+      continue
+      ;;
+  esac
   if [ "$mode" = write ]; then
     clang-format -i "$repo_root/$source_file"
   else
