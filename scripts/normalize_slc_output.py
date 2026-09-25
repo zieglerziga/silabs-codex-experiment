@@ -27,8 +27,15 @@ QUOTED_COLON_PATH_PATTERN = re.compile(
     r":((?:/(?!/)[^\s;]*|[A-Za-z]:[/\\][^\s;]*|"
     r"\\\\[^\\/\s;]+[\\/][^\\/\s;]+[^\s;]*))"
 )
+CMAKE_GENERATOR_PATH_PATTERN = re.compile(
+    r"\$<(?:BUILD_INTERFACE|INSTALL_INTERFACE):((?:"
+    r"/(?!/)[^\s;>]*"
+    r"|[A-Za-z]:[/\\][^\s;>]*"
+    r"|(?:\\\\|//)[^\\/\s;>]+[\\/][^\\/\s;>]+[^\s;>]*"
+    r"))>"
+)
 UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
-    r"(?:^|[\s(;,:=]|-[IL])((?:"
+    r"(?:^|[\s(;,=]|-[IL])((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
     r"|//[^/\s,;]+/[^/\s,;)]*"
@@ -133,7 +140,11 @@ def normalize_whitespace(path: Path) -> None:
 def find_absolute_path(path: Path, content: str) -> str | None:
     for match in QUOTED_STRING_PATTERN.finditer(content):
         value = match.group(1)
-        for pattern in (QUOTED_ABSOLUTE_PATH_PATTERN, QUOTED_COLON_PATH_PATTERN):
+        for pattern in (
+            CMAKE_GENERATOR_PATH_PATTERN,
+            QUOTED_ABSOLUTE_PATH_PATTERN,
+            QUOTED_COLON_PATH_PATTERN,
+        ):
             path_match = pattern.search(value)
             if path_match is not None:
                 return path_match.group(1)
@@ -148,6 +159,10 @@ def find_absolute_path(path: Path, content: str) -> str | None:
             if operand_match is not None:
                 return operand_match.group(1)
     elif path.suffix in {".cmake", ".json", ".properties", ".txt"}:
+        if path.suffix == ".cmake":
+            match = CMAKE_GENERATOR_PATH_PATTERN.search(unquoted_content)
+            if match is not None:
+                return match.group(1)
         match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(unquoted_content)
         if match is not None:
             return match.group(1)

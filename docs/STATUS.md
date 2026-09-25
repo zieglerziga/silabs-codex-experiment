@@ -206,6 +206,9 @@ Resolutions:
   operand in those commands, with space- and comma-separated regressions.
 - Final senior follow-up adds forward-slash Windows UNC paths to unquoted CMake
   and linker contexts, matching the already-supported quoted UNC spelling.
+- Because unquoted URLs share the `//` spelling, CMake colon handling is now
+  limited to known generator-expression path contexts; quoted and unquoted
+  HTTPS URLs both have explicit allow regressions.
 
 ### Reproducible container build (implementation complete; review pending)
 
