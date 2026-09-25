@@ -16,9 +16,20 @@ STUDIO_METADATA_PATTERN = re.compile(
     re.MULTILINE,
 )
 QUOTED_STRING_PATTERN = re.compile(r'"([^"\r\n]*)"')
-WINDOWS_ABSOLUTE_PATH_PATTERN = re.compile(r"^[A-Za-z]:[/\\]")
+QUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
+    r"(?:^|[\s;=]|-[IL])((?:"
+    r"/(?!/)[^\s;]*"
+    r"|[A-Za-z]:[/\\][^\s;]*"
+    r"|(?:\\\\|//)[^\\/\s;]+[\\/][^\\/\s;]+[^\s;]*"
+    r"))"
+)
 UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
-    r"(?:^|[\s(=])((?:/|[A-Za-z]:[/\\])[^\s;)]+)", re.MULTILINE
+    r"(?:^|[\s(;=]|-[IL])((?:"
+    r"/(?![/*\s])"
+    r"|[A-Za-z]:[/\\]"
+    r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
+    r")[^\s;)]*)",
+    re.MULTILINE,
 )
 PORTABLE_SDK_BLOCK = """if(NOT DEFINED ENV{SISDK_ROOT} OR \"$ENV{SISDK_ROOT}\" STREQUAL \"\")
   message(FATAL_ERROR \"SISDK_ROOT must point to Simplicity SDK v2025.6.3\")
@@ -100,10 +111,11 @@ def normalize_whitespace(path: Path) -> None:
 def find_absolute_path(path: Path, content: str) -> str | None:
     for match in QUOTED_STRING_PATTERN.finditer(content):
         value = match.group(1)
-        if value.startswith("/") or WINDOWS_ABSOLUTE_PATH_PATTERN.match(value):
-            return value
+        path_match = QUOTED_ABSOLUTE_PATH_PATTERN.search(value)
+        if path_match is not None:
+            return path_match.group(1)
 
-    if path.suffix in {".cmake", ".json", ".properties", ".txt"}:
+    if path.suffix in TEXT_SUFFIXES:
         match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(content)
         if match is not None:
             return match.group(1)
