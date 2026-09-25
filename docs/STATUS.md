@@ -240,3 +240,25 @@ Resolutions:
   snapshot.
 - After the fixes, the image rebuilt from the snapshot and both container host
   verification and the complete 145-step firmware build passed again.
+- Senior review found that Ubuntu's Arm GCC 13.2 package was newer than the
+  SDK-supported 12.2.Rel1 release. The image now installs Arm's architecture-
+  specific 12.2.Rel1 bundle after verifying its published SHA-256 checksum;
+  the runtime also asserts compiler version 12.2.1 during the image build.
+
+### Pull-request CI (implementation complete; review pending)
+
+- Bootstrap commit `ece465c` is pushed to both `main` and `development`, so
+  GitHub registers pull-request automation before this feature branch opens a
+  PR. Manual run `36119982282` passed on `main`.
+- The workflow runs for pull requests targeting `development`, pushes to
+  `development`, and manual dispatches, with concurrency cancellation and
+  least-privilege default permissions.
+- Host quality uses the same `make verify` entry point as local development:
+  formatting, Python regressions, strict C compilation, CTest, sanitizers, and
+  whitespace validation.
+- Open-source checks add actionlint 1.7.12, zizmor 1.30.1, and TruffleHog
+  3.97.9. Actions and tool sources are pinned to full commit SHAs or versions;
+  the secret scan compares the exact pull-request base and head commits.
+- `make workflow-check` reproduces the actionlint and zizmor audits with
+  digest-pinned, read-only containers that have no network access or Linux
+  capabilities.
