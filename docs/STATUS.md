@@ -427,3 +427,10 @@ Resolutions:
   checks, Firmware build, Workflow security, and Secret scan; bootstrap run
   `36180685539` passed. This status-only follow-up will trigger the same gates
   again; the live PR check state is authoritative before merge.
+- In response to the PR review, removed the project-specific RTT, eviction,
+  and `-Werror` findings from the reusable playbook. The playbook now states
+  the general test-architect review rule and points to this status log for
+  historical findings and resolutions. Commit `57484ae` contains the focused
+  change; both junior readability and senior embedded/process re-reviews found
+  no issues, and `git diff --check` passed. The final PR check run is recorded
+  after this status-only update.
