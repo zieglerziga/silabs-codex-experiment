@@ -1,0 +1,23 @@
+name: PR bootstrap
+
+on:
+  pull_request:
+    branches:
+      - development
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-bootstrap-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ready:
+    name: PR automation is available
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Confirm bootstrap workflow
+        run: printf '%s\n' 'Pull-request automation is active.'
