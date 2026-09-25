@@ -18,7 +18,7 @@ static uint32_t elapsed_ms(uint32_t now_ms, uint32_t then_ms) {
 }
 
 static bool deadline_reached(uint32_t now_ms, uint32_t deadline_ms) {
-  return (int32_t)(now_ms - deadline_ms) >= 0;
+  return (now_ms - deadline_ms) < (UINT32_MAX / 2U);
 }
 
 static int rssi_distance(int8_t lhs, int8_t rhs) {
@@ -225,8 +225,8 @@ bool scan_tracker_summary_due(const scan_tracker_t *tracker, uint32_t now_ms) {
          deadline_reached(now_ms, tracker->next_summary_ms);
 }
 
-scan_tracker_stats_t scan_tracker_take_summary(scan_tracker_t *tracker,
-                                               uint32_t now_ms) {
+scan_tracker_stats_t scan_tracker_snapshot_summary(scan_tracker_t *tracker,
+                                                   uint32_t now_ms) {
   scan_tracker_stats_t empty = {0};
 
   if (tracker == NULL) {

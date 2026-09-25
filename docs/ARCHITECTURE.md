@@ -32,9 +32,10 @@ firmware against Simplicity SDK.
 | Summary | Once per 30 seconds |
 
 Counters saturate where they are per-device; global counters are diagnostic and
-may wrap naturally after long operation. Time comparisons use unsigned elapsed
-arithmetic and signed deadline comparison so the 32-bit millisecond clock can
-wrap safely.
+may wrap naturally after long operation. Summary snapshots remain cumulative.
+Time comparisons use unsigned arithmetic with intervals below half the 32-bit
+range so the millisecond clock can wrap safely without implementation-defined
+integer conversions.
 
 ## Advertisement parsing
 

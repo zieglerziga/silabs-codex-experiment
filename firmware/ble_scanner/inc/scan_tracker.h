@@ -83,8 +83,8 @@ scan_tracker_observe(scan_tracker_t *tracker,
 
 bool scan_tracker_summary_due(const scan_tracker_t *tracker, uint32_t now_ms);
 
-scan_tracker_stats_t scan_tracker_take_summary(scan_tracker_t *tracker,
-                                               uint32_t now_ms);
+scan_tracker_stats_t scan_tracker_snapshot_summary(scan_tracker_t *tracker,
+                                                   uint32_t now_ms);
 
 #ifdef __cplusplus
 }
