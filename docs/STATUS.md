@@ -55,23 +55,22 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Initialize the local CodeGraph index.
 - [x] Capture the reference-project architecture and decide repository layout.
 - [x] Add the Silicon Labs project, BLE scanner, RTT logging, and host tests.
-- [ ] Add CMake, Make, and Docker build workflows.
+- [x] Add CMake, Make, and Docker build workflows.
 - [x] Add pull-request security and quality workflows.
-- [ ] Complete junior readability and senior embedded reviews; fix findings.
-- [ ] Build/test locally and in Docker.
-- [ ] Open a pull request to `development` and verify all checks.
+- [x] Complete junior readability and senior embedded reviews; fix findings.
+- [x] Build/test locally and in Docker.
+- [x] Open a pull request to `development` and verify all checks.
 
 ## Session handoff
 
-Current stage: the first Silicon Labs firmware integration review is complete.
-All junior and senior findings have been fixed and verified locally and on the
-attached hardware; the fixes are ready for their required two-agent re-review.
+Current stage: initial project delivery is complete. PR #1 merged into
+`development` at `f69f79142c8fde207a9c3d7130eeb7d9c13a677c` on 2026-09-25.
+See [DEVELOPMENT_PLAYBOOK.md](DEVELOPMENT_PLAYBOOK.md) for the development
+sequence and reusable prompt; see [PROMPT_TEMPLATE.md](PROMPT_TEMPLATE.md) for
+the copy-ready template.
 
-Next actions:
-
-1. Commit the firmware review fixes and repeat both reviews until clean.
-2. Add and validate the container build, then review that stage.
-3. Review the existing pull-request workflow before opening the PR.
+Next actions: start new work from `development`, scope it with the prompt
+template, and keep this status log current.
 
 ## Verification log
 
@@ -277,15 +276,16 @@ Resolutions:
   contains the current `development` bootstrap baseline so the PR event can
   execute both the bootstrap and full verification workflows.
 
-### Pull request verification (open)
+### Pull request verification (merged)
 
 - GitHub pull request [#1](https://github.com/zieglerziga/silabs-codex-experiment/pull/1)
   targets `development` from `feature/ble-rtt-scanner`.
 - Feature head `03c5b73` passed all four checks: bootstrap run `36146207230`
   and full verification run `36146207345` (`Host checks`, `Workflow security`,
   and `Secret scan`).
-- This status-only follow-up intentionally triggers the same checks again. The
-  live PR check state is authoritative before merge.
+- The final status-only head `97d7bf8` passed bootstrap run `36177956545` and
+  full run `36177956577`, including the firmware build. PR #1 merged on
+  2026-09-25 as `f69f79142c8fde207a9c3d7130eeb7d9c13a677c`.
 
 ### Firmware CI (complete)
 
@@ -401,3 +401,36 @@ Resolutions:
   `Secret scan`. Bootstrap run `36160957852` also passed. This status-only
   follow-up intentionally triggers the same checks again; the live PR state is
   authoritative before merge.
+
+### Development documentation and reusable prompt
+
+- Added [DEVELOPMENT_PLAYBOOK.md](DEVELOPMENT_PLAYBOOK.md) to explain the
+  project discovery, staged implementation, review loops, bootstrap/full PR
+  workflow design, verification, commit practices, and final merge.
+- Added [PROMPT_TEMPLATE.md](PROMPT_TEMPLATE.md) with fill-in fields and the
+  reusable agent instructions for future embedded projects.
+- Updated this status log's checklist and handoff to reflect that PR #1 is
+  merged and the initial project objective is complete.
+- Junior readability re-review reported no findings. Senior review found one
+  P3 documentation mismatch: the table mixed the separate bootstrap workflow
+  with full-workflow jobs and implied that secret scanning ran on pushes and
+  manual dispatch. The playbook now separates the workflows and labels
+  TruffleHog as pull-request-only; senior and junior re-reviews reported no
+  remaining findings.
+- `git diff --check` passed. Reviewers verified the scope against
+  `.github/workflows/pr.yml` and `pr-bootstrap.yml`; junior also confirmed
+  PR #1's merged state and recorded head/merge/check metadata with GitHub.
+- The documentation stage was committed as `9bb67d8` on
+  `docs/development-playbook` and opened as PR
+  [#2](https://github.com/zieglerziga/silabs-codex-experiment/pull/2) against
+  `development`. At that head, PR verification run `36180685356` passed Host
+  checks, Firmware build, Workflow security, and Secret scan; bootstrap run
+  `36180685539` passed. This status-only follow-up will trigger the same gates
+  again; the live PR check state is authoritative before merge.
+- In response to the PR review, removed the project-specific RTT, eviction,
+  and `-Werror` findings from the reusable playbook. The playbook now states
+  the general test-architect review rule and points to this status log for
+  historical findings and resolutions. Commit `57484ae` contains the focused
+  change; both junior readability and senior embedded/process re-reviews found
+  no issues, and `git diff --check` passed. The final PR check run is recorded
+  after this status-only update.
