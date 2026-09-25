@@ -60,8 +60,9 @@ make firmware
 ```
 
 The open-source build image pins its Ubuntu base by digest and its apt archive
-to a dated Ubuntu snapshot. It contains the host validation tools plus the Arm
-GNU toolchain. Build and use it with:
+to a dated Ubuntu snapshot. It contains the host validation tools plus the
+checksum-verified Arm GNU 12.2.Rel1 toolchain supported by the selected SDK.
+Build and use it with:
 
 ```sh
 make docker-image
