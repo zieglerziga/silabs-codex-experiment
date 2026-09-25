@@ -43,6 +43,33 @@ jobs:
           VERIFY_HEAD: ${{ github.event.pull_request.head.sha }}
         run: make verify
 
+  firmware-build:
+    name: Firmware build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      DOCKER_BUILDKIT: '1'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Fetch pinned Simplicity SDK
+        env:
+          CI_SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
+        run: make prepare-ci-sdk
+
+      - name: Build pinned firmware toolchain image
+        run: make docker-image
+
+      - name: Build EFR32MG21 firmware
+        env:
+          SISDK_ROOT: ${{ runner.temp }}/simplicity_sdk-v2025.6.3
+        run: make docker-firmware
+
   workflow-security:
     name: Workflow security
     runs-on: ubuntu-24.04

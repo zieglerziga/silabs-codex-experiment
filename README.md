@@ -95,10 +95,21 @@ complete command list.
 ## Pull-request verification
 
 Pull requests targeting `development` run the same `make verify` entry point,
-actionlint for workflow correctness, zizmor for workflow security, and
-TruffleHog across the changed commits. Every third-party action is pinned to a
-full commit SHA and jobs receive read-only permissions unless a narrower
-exception is documented in the workflow.
+compile the complete EFR32MG21 firmware, run actionlint for workflow
+correctness, audit workflows with zizmor, and scan changed commits with
+TruffleHog. Every third-party action is pinned to a full commit SHA and jobs
+receive read-only permissions unless a narrower exception is documented in the
+workflow.
+
+The firmware job fetches the public Simplicity SDK v2025.6.3 at exact commit
+`b41bec3ff2485199c1a5a9995b3e649e118c1b8d`, materializes only the selected Git
+LFS libraries, builds the checksum-pinned Arm GNU 12.2.Rel1 image, and compiles
+with the SDK mounted read-only and container networking disabled. Reproduce the
+SDK preparation in an empty external directory with:
+
+```sh
+CI_SISDK_ROOT=/absolute/empty/sdk/path make prepare-ci-sdk
+```
 
 Run the workflow linters locally in digest-pinned, network-isolated containers:
 
@@ -112,7 +123,8 @@ make workflow-check
   application adapter, and portable tracker.
 - `tests/` contains SDK-independent host tests.
 - `scripts/` contains repeatable generation, build, SDK preparation, flashing,
-  RTT, container, formatting, workflow-audit, and verification flows.
+  RTT, container, CI SDK preparation, formatting, workflow-audit, and
+  verification flows.
 - `docs/ARCHITECTURE.md` explains design decisions.
 - `docs/STATUS.md` is the resumable human-readable project log.
 - `.github/workflows/pr.yml` defines pull-request quality and security gates.

@@ -286,3 +286,23 @@ Resolutions:
   and `Secret scan`).
 - This status-only follow-up intentionally triggers the same checks again. The
   live PR check state is authoritative before merge.
+
+### Firmware CI (implementation complete; review pending)
+
+- Added a dedicated `Firmware build` job for pull requests, development pushes,
+  and manual workflow runs on `ubuntu-24.04` with read-only permissions and a
+  60-minute timeout for SDK and Git LFS network variance.
+- `make prepare-ci-sdk` creates a new external SDK checkout at exact public
+  commit `b41bec3ff2485199c1a5a9995b3e649e118c1b8d` (tag `v2025.6.3`) while
+  skipping broad LFS smudging, then materializes only the 16 archives selected
+  by the generated firmware project.
+- The job builds the digest- and snapshot-pinned container, then performs the
+  complete EFR32MG21 build with Arm GNU 12.2.Rel1, no container network, and a
+  read-only SDK mount. No SDK, toolchain, or build artifact is committed.
+- The platform review recommended no cache initially to avoid cache-poisoning
+  complexity; the public SDK checkout and selected LFS objects fit the hosted
+  runner disk budget. The job uses no secrets, PAT, or `pull_request_target`.
+- Local end-to-end validation created a fresh SDK checkout in a temporary
+  external directory, resolved the pinned commit, materialized all 16 selected
+  archives, and completed the 145-step network-isolated firmware build with
+  GCC 12.2.1. `make verify` and `make workflow-check` also passed.
