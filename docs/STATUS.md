@@ -201,6 +201,9 @@ Resolutions:
 - Final path-review follow-up adds unquoted comma/colon CMake contexts and GNU
   ld `STARTUP`/`OUTPUT` directives, with a regression case for every reported
   escape.
+- Senior review identified that a relative first operand could hide a later
+  absolute path in GNU ld `INPUT`/`GROUP` lists. The normalizer now scans every
+  operand in those commands, with space- and comma-separated regressions.
 
 ### Reproducible container build (implementation complete; review pending)
 
