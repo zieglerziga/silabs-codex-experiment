@@ -27,12 +27,8 @@ QUOTED_COLON_PATH_PATTERN = re.compile(
     r":((?:/(?!/)[^\s;]*|[A-Za-z]:[/\\][^\s;]*|"
     r"\\\\[^\\/\s;]+[\\/][^\\/\s;]+[^\s;]*))"
 )
-CMAKE_GENERATOR_PATH_PATTERN = re.compile(
-    r"\$<(?:BUILD_INTERFACE|INSTALL_INTERFACE):((?:"
-    r"/(?!/)[^\s;>]*"
-    r"|[A-Za-z]:[/\\][^\s;>]*"
-    r"|(?:\\\\|//)[^\\/\s;>]+[\\/][^\\/\s;>]+[^\s;>]*"
-    r"))>"
+CMAKE_GENERATOR_EXPRESSION_PATTERN = re.compile(
+    r"\$<(?:BUILD_INTERFACE|INSTALL_INTERFACE):([^>]*)>"
 )
 UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
     r"(?:^|[\s(;,=]|-[IL])((?:"
@@ -137,14 +133,21 @@ def normalize_whitespace(path: Path) -> None:
     path.write_text(normalized, encoding="utf-8")
 
 
+def find_cmake_generator_path(content: str) -> str | None:
+    for expression in CMAKE_GENERATOR_EXPRESSION_PATTERN.finditer(content):
+        path_match = QUOTED_ABSOLUTE_PATH_PATTERN.search(expression.group(1))
+        if path_match is not None:
+            return path_match.group(1)
+    return None
+
+
 def find_absolute_path(path: Path, content: str) -> str | None:
     for match in QUOTED_STRING_PATTERN.finditer(content):
         value = match.group(1)
-        for pattern in (
-            CMAKE_GENERATOR_PATH_PATTERN,
-            QUOTED_ABSOLUTE_PATH_PATTERN,
-            QUOTED_COLON_PATH_PATTERN,
-        ):
+        generator_path = find_cmake_generator_path(value)
+        if generator_path is not None:
+            return generator_path
+        for pattern in (QUOTED_ABSOLUTE_PATH_PATTERN, QUOTED_COLON_PATH_PATTERN):
             path_match = pattern.search(value)
             if path_match is not None:
                 return path_match.group(1)
@@ -160,9 +163,9 @@ def find_absolute_path(path: Path, content: str) -> str | None:
                 return operand_match.group(1)
     elif path.suffix in {".cmake", ".json", ".properties", ".txt"}:
         if path.suffix == ".cmake":
-            match = CMAKE_GENERATOR_PATH_PATTERN.search(unquoted_content)
-            if match is not None:
-                return match.group(1)
+            generator_path = find_cmake_generator_path(unquoted_content)
+            if generator_path is not None:
+                return generator_path
         match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(unquoted_content)
         if match is not None:
             return match.group(1)

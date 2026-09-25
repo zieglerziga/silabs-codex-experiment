@@ -209,6 +209,8 @@ Resolutions:
 - Because unquoted URLs share the `//` spelling, CMake colon handling is now
   limited to known generator-expression path contexts; quoted and unquoted
   HTTPS URLs both have explicit allow regressions.
+- Generator-expression validation scans the full semicolon-separated interface
+  list, preventing a forward-slash UNC entry from hiding beside relative paths.
 
 ### Reproducible container build (implementation complete; review pending)
 
