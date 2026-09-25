@@ -54,6 +54,7 @@ dkms.conf
 # Local build and developer-tool state
 build/
 .codegraph/
+firmware/**/autogen/.slc_state/
 
 # debug information files
 *.dwo

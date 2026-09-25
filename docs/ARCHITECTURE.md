@@ -37,6 +37,25 @@ Time comparisons use unsigned arithmetic with intervals below half the 32-bit
 range so the millisecond clock can wrap safely without implementation-defined
 integer conversions.
 
+## Silicon Labs integration
+
+`ble_scanner.slcp` selects the attached EFR32MG21 target, legacy scanner,
+Bluetooth system, bare-metal main loop, sleeptimer, RTT iostream, and the SDK's
+tiny `printf` implementation. SLC-generated source, configuration, and CMake
+metadata are committed so ordinary firmware builds do not require SLC CLI.
+Generated CMake reads the external SDK from `SISDK_ROOT`; a normalization script
+rejects host-specific absolute paths.
+
+The scanner uses passive 1M PHY scanning with a 100 ms interval and 50 ms
+window. RTT channel 0 is configured in non-blocking mode. The application keeps
+an EM1 power-manager requirement for the lifetime of the firmware because the
+debug probe cannot read the RTT RAM control block in EM2 on this board. Power
+optimization is intentionally outside this observability-first PoC.
+
+The SDK's tiny `printf` component is required even though the public API is
+`sl_iostream_printf()`: it streams formatted characters immediately. Falling
+back to the C library left output buffered and invisible to a live RTT reader.
+
 ## Advertisement parsing
 
 Advertising data is a sequence of length-prefixed fields. The parser checks the
@@ -53,6 +72,7 @@ observation.
   timer wraparound.
 - `docs/`: architecture, progress, and operational documentation.
 - `.github/workflows/`: pull-request quality and security gates.
+- `scripts/`: repeatable host checks, generation, build, flash, and RTT capture.
 
 This adapts the separation used by `devs-refd-ble-remote` while avoiding its
 checked-in SDK copy and generated absolute SDK paths.

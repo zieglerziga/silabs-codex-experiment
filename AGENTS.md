@@ -7,7 +7,8 @@ This repository contains firmware for a Silicon Labs EFR32MG21 BLE scanner.
 - The supported target is the hardware detected on the development host:
   BRD4181A on BRD4001A, using `EFR32MG21A010F1024IM32`.
 - The supported SDK is Simplicity SDK `v2025.6.3`. Keep the SDK outside this
-  repository and treat it as a read-only dependency.
+  repository and do not edit its sources. `make prepare-sdk` is the only
+  allowed exception: it may materialize selected Git LFS library objects.
 - `devs-refd-ble-remote` is an architectural reference only. Do not copy its
   board target or product-specific behavior.
 

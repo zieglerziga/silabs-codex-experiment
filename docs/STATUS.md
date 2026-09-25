@@ -54,24 +54,25 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Create and push `development`; create the feature branch from it.
 - [x] Initialize the local CodeGraph index.
 - [x] Capture the reference-project architecture and decide repository layout.
-- [ ] Add the Silicon Labs project, BLE scanner, RTT logging, and host tests.
+- [x] Add the Silicon Labs project, BLE scanner, RTT logging, and host tests.
 - [ ] Add CMake, Make, and Docker build workflows.
-- [ ] Add pull-request security and quality workflows.
+- [x] Add pull-request security and quality workflows.
 - [ ] Complete junior readability and senior embedded reviews; fix findings.
 - [ ] Build/test locally and in Docker.
 - [ ] Open a pull request to `development` and verify all checks.
 
 ## Session handoff
 
-Current stage: portable scan tracking implementation. The architecture follows
-the reference project's separation of project code, build support, and docs,
-but the SDK remains external and target selection comes from attached hardware.
+Current stage: Silicon Labs firmware integration is implemented and validated
+on the attached hardware. The external-SDK CMake build, flash flow, and bounded
+RTT capture are scripted; this stage is ready for its required two-agent review.
 
 Next actions:
 
-1. Complete the two-agent review of the portable scan tracker.
-2. Add the `.slcp` manifest and thin Silicon Labs event/RTT adapter.
-3. Generate a relocatable firmware CMake project with SLC CLI 5.11.0.
+1. Commit the verified firmware integration and run junior/senior reviews.
+2. Fix findings, commit them, and repeat both reviews until clean.
+3. Add and validate the container build, then review that stage.
+4. Review the existing pull-request workflow before opening the PR.
 
 ## Verification log
 
@@ -80,6 +81,17 @@ Next actions:
 - `git -C "${SISDK_ROOT}" describe --tags --always`: `v2025.6.3`.
 - `codegraph status .`: initialized, zero source files at bootstrap, index is
   up to date.
+- `make generate-firmware`: SLC CLI 5.11.0 generated the SDK 2025.6.3 project;
+  normalization left no host-specific absolute paths.
+- `make prepare-sdk`: materialized only the three Git LFS archives referenced
+  by the generated linker inputs.
+- `make firmware`: built the EFR32MG21 image with Arm GNU 16.2.0; final size was
+  104400 bytes text, 2828 bytes data, and 95476 bytes BSS.
+- `make flash`: erased, programmed, and verified 112 KiB on the attached
+  BRD4181A, then reset the target.
+- `make rtt RTT_SECONDS=5`: captured scanner startup and ten distinct nearby
+  advertisers through Commander RTT; longer validation also produced the
+  30-second summary (`555` reports, `13` discoveries, `489` suppressed lines).
 
 ## Review log
 
@@ -127,3 +139,18 @@ Next actions:
   The boundary is now inclusive and has a dedicated regression test.
 - Review-fix verification: `make test` passed 1/1, `make sanitize` passed 1/1,
   and `git diff --check` passed.
+
+### Silicon Labs firmware integration (review pending)
+
+- Added an SDK 2025.6.3 `.slcp` project for BRD4181A/EFR32MG21, generated CMake
+  metadata, and a portable toolchain file.
+- Added a thin Bluetooth event adapter that starts passive legacy scanning,
+  feeds the reviewed tracker, and formats observations and summaries to RTT.
+- Added repeatable scripts for SLC generation and path normalization, selected
+  SDK Git LFS preparation, firmware build, hardware flash, and bounded RTT
+  capture. The root Makefile exposes each operation.
+- The firmware keeps EM1 as the lowest energy mode so RTT RAM remains visible;
+  battery and deep-sleep optimization are explicitly outside this PoC.
+- Live hardware validation confirmed scan events, duplicate suppression,
+  periodic refreshes, and summary output. The SDK tiny `printf` component was
+  added after validation showed that the C library fallback buffered output.

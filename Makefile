@@ -1,6 +1,8 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help check test sanitize format format-check clean
+.PHONY: help check test sanitize format format-check verify generate-firmware prepare-sdk firmware flash rtt clean
+
+RTT_SECONDS ?= 10
 
 help:
 	@echo "Targets:"
@@ -9,6 +11,12 @@ help:
 	@echo "  sanitize  Run host tests with address/undefined sanitizers"
 	@echo "  format  Apply clang-format to project C sources"
 	@echo "  format-check  Verify project C source formatting"
+	@echo "  verify  Run all host-side checks used before a commit"
+	@echo "  generate-firmware  Regenerate the Silicon Labs CMake project"
+	@echo "  prepare-sdk  Materialize selected SDK Git LFS archives"
+	@echo "  firmware  Build the EFR32MG21 firmware with the external SDK"
+	@echo "  flash  Program the connected BRD4181A and reset it"
+	@echo "  rtt  Capture RTT output (RTT_SECONDS=10 by default)"
 	@echo "  clean  Remove repository build output"
 
 check:
@@ -25,6 +33,26 @@ format:
 
 format-check:
 	@./scripts/format.sh check
+
+verify:
+	@./scripts/verify.sh
+
+generate-firmware:
+	@./scripts/generate_firmware.sh
+
+prepare-sdk:
+	@test -n "$(SISDK_ROOT)" || (echo "SISDK_ROOT is required" >&2; exit 1)
+	@./scripts/prepare_sdk.py fetch "$(SISDK_ROOT)" \
+	  firmware/ble_scanner/ble_scanner_cmake/ble_scanner.cmake
+
+firmware:
+	@./scripts/build_firmware.sh
+
+flash:
+	@./scripts/flash_firmware.sh
+
+rtt:
+	@./scripts/capture_rtt.sh "$(RTT_SECONDS)"
 
 clean:
 	@cmake -E remove_directory build
