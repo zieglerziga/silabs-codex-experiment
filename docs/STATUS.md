@@ -204,6 +204,8 @@ Resolutions:
 - Senior review identified that a relative first operand could hide a later
   absolute path in GNU ld `INPUT`/`GROUP` lists. The normalizer now scans every
   operand in those commands, with space- and comma-separated regressions.
+- Final senior follow-up adds forward-slash Windows UNC paths to unquoted CMake
+  and linker contexts, matching the already-supported quoted UNC spelling.
 
 ### Reproducible container build (implementation complete; review pending)
 

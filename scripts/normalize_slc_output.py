@@ -31,6 +31,7 @@ UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
     r"(?:^|[\s(;,:=]|-[IL])((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
+    r"|//[^/\s,;]+/[^/\s,;)]*"
     r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
     r")[^\s;)]*)",
     re.MULTILINE,
@@ -39,6 +40,7 @@ LINKER_SINGLE_PATH_PATTERN = re.compile(
     r"\b(?:INCLUDE|OUTPUT|SEARCH_DIR|STARTUP)\s*(?:\(\s*)?((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
+    r"|//[^/\s,;]+/[^/\s,;)]*"
     r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
     r")[^\s;)]*)"
 )
@@ -47,6 +49,7 @@ LINKER_OPERAND_PATH_PATTERN = re.compile(
     r"(?:^|[\s,(])((?:"
     r"/(?![/*\s])"
     r"|[A-Za-z]:[/\\]"
+    r"|//[^/\s,;]+/[^/\s,;)]*"
     r"|\\\\[^\\/\s,;]+[\\/][^\\/\s,;)]+"
     r")[^\s,;)]*)"
 )
@@ -135,16 +138,17 @@ def find_absolute_path(path: Path, content: str) -> str | None:
             if path_match is not None:
                 return path_match.group(1)
 
+    unquoted_content = QUOTED_STRING_PATTERN.sub('""', content)
     if path.suffix == ".ld":
-        match = LINKER_SINGLE_PATH_PATTERN.search(content)
+        match = LINKER_SINGLE_PATH_PATTERN.search(unquoted_content)
         if match is not None:
             return match.group(1)
-        for command_match in LINKER_LIST_PATTERN.finditer(content):
+        for command_match in LINKER_LIST_PATTERN.finditer(unquoted_content):
             operand_match = LINKER_OPERAND_PATH_PATTERN.search(command_match.group(1))
             if operand_match is not None:
                 return operand_match.group(1)
     elif path.suffix in {".cmake", ".json", ".properties", ".txt"}:
-        match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(content)
+        match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(unquoted_content)
         if match is not None:
             return match.group(1)
 
