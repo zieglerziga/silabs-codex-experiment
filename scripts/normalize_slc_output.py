@@ -17,11 +17,15 @@ STUDIO_METADATA_PATTERN = re.compile(
 )
 QUOTED_STRING_PATTERN = re.compile(r'"([^"\r\n]*)"')
 QUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
-    r"(?:^|[\s;=]|-[IL])((?:"
+    r"(?:^|[\s;,=]|-[IL])((?:"
     r"/(?!/)[^\s;]*"
     r"|[A-Za-z]:[/\\][^\s;]*"
     r"|(?:\\\\|//)[^\\/\s;]+[\\/][^\\/\s;]+[^\s;]*"
     r"))"
+)
+QUOTED_COLON_PATH_PATTERN = re.compile(
+    r":((?:/(?!/)[^\s;]*|[A-Za-z]:[/\\][^\s;]*|"
+    r"\\\\[^\\/\s;]+[\\/][^\\/\s;]+[^\s;]*))"
 )
 UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
     r"(?:^|[\s(;=]|-[IL])((?:"
@@ -30,6 +34,13 @@ UNQUOTED_ABSOLUTE_PATH_PATTERN = re.compile(
     r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
     r")[^\s;)]*)",
     re.MULTILINE,
+)
+LINKER_ABSOLUTE_PATH_PATTERN = re.compile(
+    r"\b(?:GROUP|INCLUDE|INPUT|SEARCH_DIR)\s*(?:\(\s*)?((?:"
+    r"/(?![/*\s])"
+    r"|[A-Za-z]:[/\\]"
+    r"|\\\\[^\\/\s;]+[\\/][^\\/\s;)]+"
+    r")[^\s;)]*)"
 )
 PORTABLE_SDK_BLOCK = """if(NOT DEFINED ENV{SISDK_ROOT} OR \"$ENV{SISDK_ROOT}\" STREQUAL \"\")
   message(FATAL_ERROR \"SISDK_ROOT must point to Simplicity SDK v2025.6.3\")
@@ -111,11 +122,16 @@ def normalize_whitespace(path: Path) -> None:
 def find_absolute_path(path: Path, content: str) -> str | None:
     for match in QUOTED_STRING_PATTERN.finditer(content):
         value = match.group(1)
-        path_match = QUOTED_ABSOLUTE_PATH_PATTERN.search(value)
-        if path_match is not None:
-            return path_match.group(1)
+        for pattern in (QUOTED_ABSOLUTE_PATH_PATTERN, QUOTED_COLON_PATH_PATTERN):
+            path_match = pattern.search(value)
+            if path_match is not None:
+                return path_match.group(1)
 
-    if path.suffix in TEXT_SUFFIXES:
+    if path.suffix == ".ld":
+        match = LINKER_ABSOLUTE_PATH_PATTERN.search(content)
+        if match is not None:
+            return match.group(1)
+    elif path.suffix in {".cmake", ".json", ".properties", ".txt"}:
         match = UNQUOTED_ABSOLUTE_PATH_PATTERN.search(content)
         if match is not None:
             return match.group(1)

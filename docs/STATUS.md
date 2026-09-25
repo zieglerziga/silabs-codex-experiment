@@ -194,3 +194,7 @@ Resolutions:
   unquoted paths in linker scripts. Detection now covers every generated text
   type, distinguishes C++ comments from network paths, and has drive-letter,
   UNC, and linker-script regression cases.
+- Senior re-review then exposed a false positive for C division and escapes in
+  CMake generator expressions and comma-separated linker flags. Unquoted
+  validation is now syntax-scoped, while quoted colon/comma contexts are
+  covered without treating HTTPS URLs as filesystem paths.
