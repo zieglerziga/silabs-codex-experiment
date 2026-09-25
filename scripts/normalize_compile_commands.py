@@ -18,11 +18,51 @@ def _replace_value(value: str, replacements: list[tuple[str, str]]) -> str:
     return value
 
 
+def _normalize_arguments(
+    arguments: Any,
+    replacements: list[tuple[str, str]],
+) -> tuple[list[str], int]:
+    if not isinstance(arguments, list) or not all(
+        isinstance(argument, str) for argument in arguments
+    ):
+        raise ValueError("compilation database arguments must be strings")
+
+    normalized = [_replace_value(argument, replacements) for argument in arguments]
+    applied = sum(
+        old != new for old, new in zip(arguments, normalized, strict=True)
+    )
+    return normalized, applied
+
+
+def _normalize_entry(
+    entry: dict[str, Any],
+    replacements: list[tuple[str, str]],
+) -> int:
+    replacements_applied = 0
+    for field in COMMAND_FIELDS:
+        value = entry.get(field)
+        if isinstance(value, str):
+            normalized = _replace_value(value, replacements)
+            if normalized != value:
+                replacements_applied += 1
+                entry[field] = normalized
+
+    arguments = entry.get("arguments")
+    if arguments is not None:
+        normalized_arguments, applied = _normalize_arguments(arguments, replacements)
+        replacements_applied += applied
+        entry["arguments"] = normalized_arguments
+
+    return replacements_applied
+
+
 def normalize_compile_commands(
     input_path: Path,
     output_path: Path,
     replacements: list[tuple[str, str]],
 ) -> int:
+    input_path = input_path.resolve(strict=True)
+    output_path = output_path.resolve()
     document: Any = json.loads(input_path.read_text(encoding="utf-8"))
     if not isinstance(document, list):
         raise ValueError("compilation database must contain a JSON array")
@@ -31,29 +71,7 @@ def normalize_compile_commands(
     for entry in document:
         if not isinstance(entry, dict):
             raise ValueError("each compilation database entry must be an object")
-
-        for field in COMMAND_FIELDS:
-            value = entry.get(field)
-            if isinstance(value, str):
-                normalized = _replace_value(value, replacements)
-                if normalized != value:
-                    replacements_applied += 1
-                    entry[field] = normalized
-
-        arguments = entry.get("arguments")
-        if arguments is not None:
-            if not isinstance(arguments, list) or not all(
-                isinstance(argument, str) for argument in arguments
-            ):
-                raise ValueError("compilation database arguments must be strings")
-            normalized_arguments = [
-                _replace_value(argument, replacements) for argument in arguments
-            ]
-            replacements_applied += sum(
-                old != new
-                for old, new in zip(arguments, normalized_arguments, strict=True)
-            )
-            entry["arguments"] = normalized_arguments
+        replacements_applied += _normalize_entry(entry, replacements)
 
     output_path.write_text(
         json.dumps(document, indent=2, ensure_ascii=False) + "\n",

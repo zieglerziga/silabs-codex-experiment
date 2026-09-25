@@ -66,17 +66,16 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 ## Session handoff
 
 Current stage: SonarCloud PR #5 is open from
-`feature/sonarcloud-check` to `development`. The first hosted analysis reached
-SonarCloud but could not analyze the firmware C files because the runner did
-not have the ARM compiler path recorded in the Docker-generated compilation
-database.
+`feature/sonarcloud-check` to `development`. The scanner now passes after the
+ARM compiler export fix, but the default quality gate reported uncovered new
+CI helper code and path-taint findings in the helper utilities.
 
-Next actions: push the compiler-export fix, then verify the replacement
-SonarCloud run and the remaining PR checks.
+Next actions: push the quality-gate remediation, then verify the replacement
+SonarCloud quality gate and the remaining PR checks.
 
-1. Commit and push the pinned compiler export and compilation-database path
-   normalization fix.
-2. Verify the replacement SonarCloud run and all PR checks.
+1. Commit and push the path canonicalization, helper refactor, and coverage
+   scope fix.
+2. Verify the replacement SonarCloud analysis and quality gate.
 3. Mark the SonarCloud stage complete after the hosted checks pass.
 
 ## Verification log
@@ -461,3 +460,11 @@ Resolutions:
   rewrites that path before the scanner runs. Local `make workflow-check`,
   `git diff --check`, and all 36 Python tests pass. Junior readability and
   senior platform/CI follow-up reviews reported no findings.
+- The scanner passed on run `36185514240`, but the SonarCloud quality gate
+  initially failed on 0% new coverage and seven path-taint/cognitive-complexity
+  findings in the two CI helper scripts. The helpers now resolve their input
+  and output paths before I/O, split normalization into focused helpers, and
+  exclude CI-only scripts from the application coverage denominator while
+  retaining static analysis. `make verify`, `make workflow-check`,
+  `git diff --check`, and both requested Luna re-reviews pass; the remediation
+  is pending its hosted run.

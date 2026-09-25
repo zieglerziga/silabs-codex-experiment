@@ -10,6 +10,8 @@ from typing import Any
 
 
 def merge_compile_commands(input_paths: list[Path], output_path: Path) -> int:
+    input_paths = [input_path.resolve(strict=True) for input_path in input_paths]
+    output_path = output_path.resolve()
     merged: list[dict[str, Any]] = []
     seen_files: set[str] = set()
 
