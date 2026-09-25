@@ -23,6 +23,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Go for actionlint
@@ -37,6 +38,9 @@ jobs:
           "$(go env GOPATH)/bin/actionlint" -color
 
       - name: Run repository verification
+        env:
+          VERIFY_BASE: ${{ github.event.pull_request.base.sha }}
+          VERIFY_HEAD: ${{ github.event.pull_request.head.sha }}
         run: make verify
 
   workflow-security:
