@@ -198,3 +198,6 @@ Resolutions:
   CMake generator expressions and comma-separated linker flags. Unquoted
   validation is now syntax-scoped, while quoted colon/comma contexts are
   covered without treating HTTPS URLs as filesystem paths.
+- Final path-review follow-up adds unquoted comma/colon CMake contexts and GNU
+  ld `STARTUP`/`OUTPUT` directives, with a regression case for every reported
+  escape.
