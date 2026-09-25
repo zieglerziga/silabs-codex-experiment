@@ -52,7 +52,8 @@ generated files keep Silicon Labs' warning policy.
 
 ### Use review findings to strengthen the tests
 
-After each meaningful stage, two independent coding-agent reviews were used:
+After each meaningful stage, request two independent read-only coding-agent
+reviews:
 
 - A junior software review focused on readability, discoverability, shell and
   Python clarity, and documentation.
@@ -61,25 +62,12 @@ After each meaningful stage, two independent coding-agent reviews were used:
 
 Reviewers inspected without editing. Findings were recorded with file and line
 references, fixed by the implementation agent in a follow-up commit, verified,
-and sent back for another review. A strict Luna test-architect review later
-examined the suite's coverage and test oracles. It found three actionable gaps:
-
-- RTT capture could pass on an initialization line even when the Bluetooth
-  stack had not started scanning. The capture now requires scan-start evidence
-  and reports a quiet RF interval separately; the board capture showed actual
-  advertisements after the new check passed.
-- The cache test counted evictions without proving which device was evicted.
-  It now confirms a recently seen entry remains and that the oldest entry is
-  treated as new after overflow.
-- Firmware compilation did not make warnings fatal for hand-written code. A
-  managed CMake fragment now adds `-Werror` only to project-owned sources and is
-  copied during generation and checked for drift before building.
-
-The strict test-architect, readability, and embedded re-reviews found no
-remaining issues in those changes. Other test-architect coverage risks—such as
-automated event-adapter stubs, RTT backpressure, and CI verification of SLC
-regeneration drift—remain useful future work; they were not represented as
-completed coverage.
+and sent back for another review. For test-heavy or safety-critical work, add a
+strict test-architect review that challenges coverage, test oracles, boundary
+cases, and false confidence. Keep the concrete findings, resolutions, and
+remaining coverage risks in [STATUS.md](STATUS.md); that historical log is the
+source of truth for this project's review details and is intentionally not
+duplicated in the reusable playbook.
 
 ### Establish pull-request checks before opening the PR
 
