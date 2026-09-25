@@ -345,5 +345,10 @@ Resolutions:
   discovery, rejection, tag resolution, and outdated-result handling.
 - Platform review confirmed both v7 migrations use Node 24 and require no input
   changes for this `pull_request` workflow on the hosted Ubuntu 24.04 runner.
-  `make actions-audit`, `make workflow-check`, and `make verify` (28 Python
+  `make actions-audit`, `make workflow-check`, and `make verify` (29 Python
   tests plus the existing strict C, test, and sanitizer gates) passed locally.
+- Senior review found two low-severity audit completeness gaps: Docker action
+  references were skipped without enforcing a digest, and GitHub's `$/path`
+  self-repository syntax was not recognized. The follow-up requires Docker
+  actions to use a SHA-256 digest, accepts both supported local-action forms,
+  and adds regression coverage for each case.

@@ -42,7 +42,17 @@ def workflow_references() -> dict[str, set[tuple[str, str]]]:
         source = workflow_path.read_text(encoding="utf-8")
         for match in USES_PATTERN.finditer(source):
             target = match.group("target")
-            if target.startswith(("./", "docker://")):
+            if target.startswith(("./", "$/")):
+                continue
+
+            if target.startswith("docker://"):
+                image = target.removeprefix("docker://")
+                if not re.fullmatch(r".+@sha256:[0-9a-f]{64}", image):
+                    relative_path = workflow_path.relative_to(REPOSITORY_ROOT)
+                    raise RuntimeError(
+                        "mutable Docker action reference in "
+                        f"{relative_path}: {target}"
+                    )
                 continue
 
             action_path, separator, commit = target.rpartition("@")
