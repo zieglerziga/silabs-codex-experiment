@@ -244,8 +244,10 @@ Resolutions:
   SDK-supported 12.2.Rel1 release. The image now installs Arm's architecture-
   specific 12.2.Rel1 bundle after verifying its published SHA-256 checksum;
   the runtime also asserts compiler version 12.2.1 during the image build.
+- Junior and senior re-reviews reported no findings. `make docker-verify` and
+  the complete 145-step container firmware build passed with GCC 12.2.1.
 
-### Pull-request CI (implementation complete; review pending)
+### Pull-request CI (finding fixed; re-review pending)
 
 - Bootstrap commit `ece465c` is pushed to both `main` and `development`, so
   GitHub registers pull-request automation before this feature branch opens a
@@ -262,3 +264,8 @@ Resolutions:
 - `make workflow-check` reproduces the actionlint and zizmor audits with
   digest-pinned, read-only containers that have no network access or Linux
   capabilities.
+- Junior review reported no findings. Senior review found that a bare
+  `git diff --check` only inspects working-tree changes and is empty in a clean
+  Actions checkout. The workflow now fetches history and passes the exact PR
+  base/head SHAs to `make verify`, which checks their merge-base diff; local
+  calls retain the working-tree check.
