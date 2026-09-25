@@ -146,12 +146,30 @@ static void test_timers_handle_uint32_wrap(void) {
   EXPECT_TRUE(scan_tracker_summary_due(&tracker, 30000U));
 }
 
+static void test_summary_snapshot_keeps_cumulative_counters(void) {
+  scan_tracker_t tracker;
+  scan_tracker_init(&tracker, 0U);
+  const scan_observation_t observation = observation_for(6U, -45, NULL, 0U);
+  (void)scan_tracker_observe(&tracker, &observation, 1U);
+
+  const scan_tracker_stats_t first =
+      scan_tracker_snapshot_summary(&tracker, 30000U);
+  const scan_tracker_stats_t second =
+      scan_tracker_snapshot_summary(&tracker, 60000U);
+
+  EXPECT_EQ_UINT(1U, first.total_reports);
+  EXPECT_EQ_UINT(1U, second.total_reports);
+  EXPECT_TRUE(!scan_tracker_summary_due(&tracker, 60000U));
+  EXPECT_TRUE(scan_tracker_summary_due(&tracker, 90000U));
+}
+
 int main(void) {
   test_first_sighting_and_suppression();
   test_name_and_rssi_changes_are_rate_limited();
   test_complete_name_wins_and_malformed_data_is_counted();
   test_cache_evicts_the_oldest_device();
   test_timers_handle_uint32_wrap();
+  test_summary_snapshot_keeps_cumulative_counters();
 
   if (failures == 0U) {
     (void)puts("scan_tracker_tests: all tests passed");

@@ -117,3 +117,9 @@ Next actions:
 - `make sanitize`: 1/1 CTest passed with AddressSanitizer and
   UndefinedBehaviorSanitizer.
 - `make format-check`: passed with the host clang-format.
+- Junior review found that `scan_tracker_take_summary()` sounded destructive
+  even though counters are cumulative. It was renamed to
+  `scan_tracker_snapshot_summary()` and covered with a regression test.
+- Senior review found no defect, but noted an implementation-defined unsigned
+  to signed conversion in deadline comparison. It was proactively replaced by
+  a fully unsigned half-range comparison.
