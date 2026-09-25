@@ -21,6 +21,14 @@ This repository contains firmware for a Silicon Labs EFR32MG21 BLE scanner.
 - After each stage, request two independent reviews: one focused on readability
   and documentation, and one focused on embedded correctness and defects.
 - Record review results and the verification commands in `docs/STATUS.md`.
+- Use scoped Conventional Commits (`type(scope): imperative summary`). Add a
+  concise body when the motivation or verification is not obvious from the
+  diff.
+- Only coding agents work directly in this repository. Coordinate ownership of
+  files, avoid overlapping edits, and leave every stage understandable to a
+  human reader through committed documentation.
+- Put any repeated command sequence in a versioned Python or POSIX shell script
+  under `scripts/`; expose common operations through the root `Makefile`.
 
 ## Code navigation
 
