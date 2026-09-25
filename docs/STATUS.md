@@ -26,6 +26,13 @@ and protect pull requests with free/open-source GitHub Actions checks.
 The local SDK checkout had a pre-existing untracked Python `__pycache__`; the
 project must not modify or clean that external checkout.
 
+For a local session, point the build at the installed SDK before running SDK
+commands:
+
+```sh
+export SISDK_ROOT=/path/to/simplicity_sdk
+```
+
 ## Intended scan behavior
 
 - Start passive scanning after the Bluetooth stack reaches system boot.
@@ -81,3 +88,5 @@ Next actions:
   reported the same portability and stale-handoff issues.
 - Resolution: use `SISDK_ROOT`, describe VCOM enumeration generically, and make
   the handoff begin with the actual next task.
+- Senior re-review: requested an explicit portable setup example for
+  `SISDK_ROOT`; the example above resolves it without committing a host path.
