@@ -106,6 +106,17 @@ TruffleHog. Every third-party action is pinned to a full commit SHA and jobs
 receive read-only permissions unless a narrower exception is documented in the
 workflow.
 
+Pull requests targeting `development` or `main` also run SonarCloud analysis.
+The SonarCloud workflow builds the firmware with the same pinned container and
+SDK used by firmware CI, then gives the scanner the resulting compilation
+database. The imported SonarCloud project uses organization `zieglerziga` and
+project key `zieglerziga_silabs-codex-experiment`; the repository
+`SONAR_TOKEN` secret is required for the scan.
+For fork pull requests, the SonarCloud job is explicitly skipped because GitHub
+withholds repository secrets from `pull_request` workflows triggered by forks.
+Dependabot pull requests are skipped for the same reason; a maintainer must run
+the analysis from a trusted branch for either case.
+
 The firmware job fetches the public Simplicity SDK v2025.6.3 at exact commit
 `b41bec3ff2485199c1a5a9995b3e649e118c1b8d`, materializes only the selected Git
 LFS libraries, builds the checksum-pinned Arm GNU 12.2.Rel1 image, and compiles

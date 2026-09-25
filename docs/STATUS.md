@@ -19,7 +19,7 @@ stage leaves a human-readable status entry.
 | --- | --- |
 | GitHub repository | `zieglerziga/silabs-codex-experiment` |
 | Integration branch | `development` (created from `main`) |
-| Feature branch | `feature/ble-rtt-scanner` |
+| Feature branch | `feature/sonarcloud-check` |
 | Mainboard | BRD4001A Rev. A01 |
 | Radio board | BRD4181A Rev. A01 |
 | Device | EFR32MG21A010F1024IM32 (1 MiB flash, 96 KiB SRAM) |
@@ -57,21 +57,25 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Add the Silicon Labs project, BLE scanner, RTT logging, and host tests.
 - [ ] Add CMake, Make, and Docker build workflows.
 - [x] Add pull-request security and quality workflows.
-- [ ] Complete junior readability and senior embedded reviews; fix findings.
-- [ ] Build/test locally and in Docker.
-- [ ] Open a pull request to `development` and verify all checks.
+- [x] Complete junior readability and senior embedded reviews; fix findings.
+- [x] Build/test locally and in Docker.
+- [x] Open the baseline pull request to `development` and verify all checks.
+- [x] Implement the SonarCloud pull-request check for `development` and `main`.
+- [ ] Open the SonarCloud pull request to `development` and verify all checks.
 
 ## Session handoff
 
-Current stage: the first Silicon Labs firmware integration review is complete.
-All junior and senior findings have been fixed and verified locally and on the
-attached hardware; the fixes are ready for their required two-agent re-review.
+Current stage: SonarCloud PR analysis is implemented on
+`feature/sonarcloud-check`, based on `origin/development`.
 
-Next actions:
+Next actions: run the workflow lint and host verification checks, then request
+the readability/documentation and embedded-correctness reviews before opening
+the pull request.
 
-1. Commit the firmware review fixes and repeat both reviews until clean.
-2. Add and validate the container build, then review that stage.
-3. Review the existing pull-request workflow before opening the PR.
+1. Run `make workflow-check`, host verification, and the firmware build path.
+2. Request independent readability/documentation and embedded-correctness
+   reviews, then resolve any findings.
+3. Commit the verified stage and open the pull request against `development`.
 
 ## Verification log
 
@@ -93,6 +97,11 @@ Next actions:
   30-second summary (`555` reports, `13` discoveries, `489` suppressed lines).
 
 ## Review log
+
+The entries below are historical records for the baseline firmware delivery.
+The active SonarCloud work is recorded in its own stage at the end of this
+file; older branch and pull-request names in the baseline entries are kept for
+traceability.
 
 ### Bootstrap documentation (`dfe017a`)
 
@@ -401,3 +410,34 @@ Resolutions:
   `Secret scan`. Bootstrap run `36160957852` also passed. This status-only
   follow-up intentionally triggers the same checks again; the live PR state is
   authoritative before merge.
+
+### SonarCloud PR analysis (implementation stage)
+
+- Issue [#4](https://github.com/zieglerziga/silabs-codex-experiment/issues/4)
+  requests SonarCloud checks for pull requests targeting the protected
+  branches. This repository names its integration branch `development` rather
+  than `develop`, so the workflow targets `development` and `main`.
+- Added `sonar-project.properties` for the `zieglerziga` organization and the
+  `zieglerziga_silabs-codex-experiment` project, excluding generated Silicon
+  Labs output and build directories while retaining hand-written firmware,
+  scripts, and host tests in the analysis scope.
+- Enabled CMake compilation database export in the firmware preset. The new
+  `.github/workflows/sonarcloud.yml` reuses the pinned SDK and container build,
+  then runs the pinned SonarQube Scan Action with the repository's
+  `SONAR_TOKEN` secret.
+- Junior readability review found stale active-stage wording around the
+  historical branch and checklist entries; the handoff now distinguishes the
+  current branch and labels the older records as historical.
+- Senior platform review found that fork PRs cannot receive repository
+  secrets. Same-repository PRs run the scan; the SonarCloud job is explicitly
+  skipped for fork and Dependabot PRs without exposing `SONAR_TOKEN`.
+- Verification passed with `make verify` (36 Python tests, strict host C build,
+  CTest, sanitizers, formatting, and whitespace checks), `make workflow-check`,
+  and `make actions-audit`.
+- A clean CI-equivalent run of `CI_SISDK_ROOT=<temporary external directory>
+  make prepare-ci-sdk`, `make docker-image`, and
+  `SISDK_ROOT=<same directory> make docker-firmware` completed all 145 firmware
+  build steps. Path normalization and database merging produced 145 unique
+  compilation commands covering the hand-written firmware and host test source.
+- Final junior readability/documentation and senior platform/CI re-reviews
+  reported no findings.
