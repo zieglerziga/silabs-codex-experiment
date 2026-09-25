@@ -13,11 +13,12 @@ case "$mode" in
 esac
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-build_dir="$repo_root/build/host"
+build_root=${BUILD_ROOT:-$repo_root/build}
+build_dir="$build_root/host"
 sanitizer_options=
 
 if [ "$mode" = sanitize ]; then
-  build_dir="$repo_root/build/host-sanitize"
+  build_dir="$build_root/host-sanitize"
   sanitizer_options="-fsanitize=address,undefined -fno-omit-frame-pointer"
 fi
 

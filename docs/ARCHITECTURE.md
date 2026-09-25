@@ -49,6 +49,13 @@ rejects host-specific absolute paths. The normalizer also removes SLC's opaque,
 path-dependent Studio metadata comment; `ble_scanner.slcp` remains the project
 source of truth and consecutive generations are byte-for-byte stable.
 
+The optional Ubuntu container supplies only open-source host tools and the Arm
+GNU toolchain. It consumes the same committed generated project as the host
+build and mounts the external SDK read-only. Runtime networking, capabilities,
+and root-filesystem writes are disabled. Proprietary SLC, Commander, and debug
+probe access stay outside the image, keeping generation and hardware operations
+separate from the reproducible compile environment.
+
 The scanner uses passive 1M PHY scanning with a 100 ms interval and 50 ms
 window. RTT channel 0 is configured in non-blocking mode. The application keeps
 an EM1 power-manager requirement for the lifetime of the firmware because the
@@ -75,7 +82,8 @@ observation.
   timer wraparound.
 - `docs/`: architecture, progress, and operational documentation.
 - `.github/workflows/`: pull-request quality and security gates.
-- `scripts/`: repeatable host checks, generation, build, flash, and RTT capture.
+- `scripts/`: repeatable host checks, generation, container build, flash, and
+  RTT capture.
 
 This adapts the separation used by `devs-refd-ble-remote` while avoiding its
 checked-in SDK copy and generated absolute SDK paths.

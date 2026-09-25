@@ -58,6 +58,21 @@ make verify
 make firmware
 ```
 
+The open-source build image pins its Ubuntu base by digest and contains the
+host validation tools plus the Arm GNU toolchain. Build and use it with:
+
+```sh
+make docker-image
+make docker-verify
+make docker-firmware
+```
+
+`docker-firmware` mounts `SISDK_ROOT` read-only at `/opt/simplicity_sdk` and
+runs without network access, Linux capabilities, or a writable container root.
+SLC, Commander, and the SDK are deliberately not installed in the image;
+generation, flashing, and RTT capture remain explicit host operations. Host
+checks use `build/docker/` so native and container CMake caches never collide.
+
 Regenerate the Silicon Labs project after changing `ble_scanner.slcp`:
 
 ```sh
@@ -80,7 +95,7 @@ complete command list.
   application adapter, and portable tracker.
 - `tests/` contains SDK-independent host tests.
 - `scripts/` contains repeatable generation, build, SDK preparation, flashing,
-  RTT, formatting, and verification flows.
+  RTT, container, formatting, and verification flows.
 - `docs/ARCHITECTURE.md` explains design decisions.
 - `docs/STATUS.md` is the resumable human-readable project log.
 - `.github/workflows/pr.yml` defines pull-request quality and security gates.

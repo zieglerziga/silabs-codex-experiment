@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help check test sanitize format format-check verify generate-firmware prepare-sdk firmware flash rtt clean
+.PHONY: help check test sanitize format format-check verify generate-firmware prepare-sdk firmware docker-image docker-verify docker-firmware flash rtt clean
 
 RTT_SECONDS ?= 10
 
@@ -15,6 +15,9 @@ help:
 	@echo "  generate-firmware  Regenerate the Silicon Labs CMake project"
 	@echo "  prepare-sdk  Materialize selected SDK Git LFS archives"
 	@echo "  firmware  Build the EFR32MG21 firmware with the external SDK"
+	@echo "  docker-image  Build the pinned open-source build image"
+	@echo "  docker-verify  Run host verification in the build image"
+	@echo "  docker-firmware  Build firmware with the SDK mounted read-only"
 	@echo "  flash  Program the connected BRD4181A and reset it"
 	@echo "  rtt  Capture RTT output (RTT_SECONDS=10 by default)"
 	@echo "  clean  Remove repository build output"
@@ -47,6 +50,15 @@ prepare-sdk:
 
 firmware:
 	@./scripts/build_firmware.sh
+
+docker-image:
+	@./scripts/docker.sh image
+
+docker-verify:
+	@./scripts/docker.sh verify
+
+docker-firmware:
+	@./scripts/docker.sh firmware
 
 flash:
 	@./scripts/flash_firmware.sh
