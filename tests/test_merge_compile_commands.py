@@ -57,6 +57,21 @@ class MergeCompileCommandsTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "outside trusted root"):
                 merger.merge_compile_commands([outside], root / "output.json", root)
 
+    def test_rejects_symlink_escape(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "root"
+            root.mkdir()
+            outside = Path(directory) / "outside.json"
+            outside.write_text("[]", encoding="utf-8")
+            link = root / "linked.json"
+            try:
+                link.symlink_to(outside)
+            except (NotImplementedError, OSError) as error:
+                self.skipTest(f"symlinks unavailable: {error}")
+
+            with self.assertRaisesRegex(ValueError, "outside trusted root"):
+                merger.merge_compile_commands([link], root / "output.json", root)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -464,7 +464,7 @@ Resolutions:
   findings in the two CI helper scripts. The helpers now resolve input and
   output paths beneath an explicitly supplied trusted workspace root, reject
   traversal and symlink escapes, and split normalization into focused helpers.
-  CI passes `$GITHUB_WORKSPACE` to both tools; 38 Python tests cover the new
+  CI passes `$GITHUB_WORKSPACE` to both tools; 40 Python tests cover the new
   rejection behavior. The coverage scope excludes CI-only scripts while
   retaining static analysis. `make verify`, `make workflow-check`, and
   `git diff --check` pass; the remediation is pending its hosted run.
