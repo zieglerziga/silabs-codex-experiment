@@ -22,6 +22,9 @@ component:
   - id: EFR32MG21A010F1024IM32
   - id: app_assert
   - id: bluetooth_feature_legacy_scanner
+  - id: bluetooth_feature_extended_scanner
+  - id: bluetooth_feature_accept_list
+  - id: bluetooth_feature_resolving_list
   - id: bluetooth_feature_system
   - id: bluetooth_stack
   - id: brd4001a

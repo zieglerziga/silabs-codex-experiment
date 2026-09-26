@@ -116,6 +116,8 @@ static sl_status_t configure_scanner(void) {
       runtime_state.scan.filter);
 }
 
+static sl_status_t start_scanner_configured(void);
+
 static sl_status_t start_scanner(void) {
   sl_status_t status;
 
@@ -126,6 +128,16 @@ static sl_status_t start_scanner(void) {
   status = configure_scanner();
   if (status != SL_STATUS_OK) {
     return status;
+  }
+
+  return start_scanner_configured();
+}
+
+static sl_status_t start_scanner_configured(void) {
+  sl_status_t status;
+
+  if (runtime_state.scanning) {
+    return SL_STATUS_ALREADY_EXISTS;
   }
 
   status =
@@ -148,6 +160,29 @@ static sl_status_t stop_scanner(void) {
     runtime_state.scanning = false;
   }
   return status;
+}
+
+static sl_status_t restore_scan_state(const scan_config_t *config,
+                                      const scan_config_t *known_config,
+                                      bool restart) {
+  const scan_config_t fallback_config = *known_config;
+  sl_status_t status;
+
+  runtime_state.scan = *config;
+  status = configure_scanner();
+  if (status != SL_STATUS_OK) {
+    // Keep the last known applied configuration if restoration itself fails.
+    runtime_state.scan = fallback_config;
+    runtime_state.scanning = false;
+    return status;
+  }
+
+  if (!restart) {
+    runtime_state.scanning = false;
+    return SL_STATUS_OK;
+  }
+
+  return start_scanner_configured();
 }
 
 static void log_identity(void) {
@@ -220,8 +255,8 @@ static void print_help(void) {
       "  tx get | tx set <min_x10> <max_x10>\r\n"
       "  identity get\r\n"
       "  log set <observations|summaries> <on|off>\r\n"
-      "values: scan times use 0.625ms units; tx uses 0.1dBm; flags/filter "
-      "are numeric\r\n");
+      "values: scan times use 0.625ms units; tx uses 0.1dBm; flags=0 or 0x1 "
+      "(ignore bonding); filter=0..3\r\n");
 }
 
 static void log_observation(const scan_observation_result_t *result,
@@ -285,20 +320,18 @@ static void handle_scan_configuration(const rtt_command_t *command) {
 
   status = configure_scanner();
   if (status != SL_STATUS_OK) {
-    runtime_state.scan = old_config;
-    (void)configure_scanner();
     log_command_status("scan-config", status);
-    if (restart) {
-      status = start_scanner();
-      log_command_status("scan-restore", status);
-    }
+    status = restore_scan_state(&old_config, &old_config, restart);
+    log_command_status("scan-restore", status);
     return;
   }
 
   if (restart) {
-    status = start_scanner();
+    status = start_scanner_configured();
     if (status != SL_STATUS_OK) {
       log_command_status("scan-start", status);
+      status = restore_scan_state(&old_config, &runtime_state.scan, true);
+      log_command_status("scan-restore", status);
       return;
     }
   }

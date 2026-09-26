@@ -46,9 +46,10 @@ integer conversions.
 
 ## Silicon Labs integration
 
-`ble_scanner.slcp` selects the attached EFR32MG21 target, legacy scanner,
-Bluetooth system, bare-metal main loop, sleeptimer, RTT iostream, and the SDK's
-tiny `printf` implementation. SLC-generated source, configuration, and CMake
+`ble_scanner.slcp` selects the attached EFR32MG21 target, legacy and extended
+scanner support, Filter Accept List, Resolving List, Bluetooth system,
+bare-metal main loop, sleeptimer, RTT iostream, and the SDK's tiny `printf`
+implementation. SLC-generated source, configuration, and CMake
 metadata are committed so ordinary firmware builds do not require SLC CLI.
 Generated CMake reads the external SDK from `SISDK_ROOT`; a normalization script
 rejects host-specific absolute paths. The normalizer also removes SLC's opaque,
@@ -73,8 +74,7 @@ this board. Power optimization is intentionally outside this observability-first
 control lab. The first RTT control stage can change scan mode, interval, window,
 PHY selection, discovery mode, scanner flags/filter policy, global TX-power
 limits, and logging enablement at runtime. Advertiser, connection, GATT,
-security, and extended/periodic radio APIs remain a planned component-expansion
-stage rather than being exposed by a scanner-only generated project.
+security, and periodic radio APIs remain a planned component-expansion stage.
 
 The SDK's tiny `printf` component is required even though the public API is
 `sl_iostream_printf()`: it streams formatted characters immediately. Falling

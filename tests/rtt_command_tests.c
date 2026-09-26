@@ -98,6 +98,12 @@ static void test_invalid_input_is_rejected(void) {
       rtt_command_parse("status now", sizeof("status now") - 1U, &command));
   EXPECT_EQ_UINT(RTT_COMMAND_PARSE_TOO_MANY_TOKENS,
                  rtt_command_parse(too_many, sizeof(too_many) - 1U, &command));
+  EXPECT_EQ_UINT(
+      RTT_COMMAND_PARSE_RANGE,
+      rtt_command_parse("scan set passive 160 80 1m observation 0x2 0",
+                        sizeof("scan set passive 160 80 1m observation 0x2 0") -
+                            1U,
+                        &command));
 }
 
 int main(void) {

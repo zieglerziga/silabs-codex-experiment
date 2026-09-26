@@ -44,15 +44,17 @@ log set summaries on
 ```
 
 Scan interval and window use 0.625 ms units. TX power uses 0.1 dBm units.
-Changing TX power requires scanning to be stopped, and scan settings are
-validated before the current scan is restarted. The command parser is
-SDK-independent and bounded; malformed or overlong input is rejected without
-allocating memory.
+Scanner flags accept `0` or `0x1` (`SL_BT_SCANNER_IGNORE_BONDING`), and filter
+policies use values `0..3`. Changing TX power requires scanning to be stopped.
+Scan settings are validated before the current scan is restarted; if a new
+configuration cannot start, the previous configuration is restored and the
+restore status is reported. The command parser is SDK-independent and bounded;
+malformed or overlong input is rejected without allocating memory.
 
-This first control stage intentionally covers APIs in the scanner-only project.
-Advertiser, connection, GATT, security, extended-scanner, and periodic-radio
-controls are the next component-expansion stage because they require additional
-Simplicity SDK components and regenerated project output.
+This first control stage covers the legacy and extended scanner, Filter Accept
+List, and Resolving List components. Advertiser, connection, GATT, security,
+and periodic-radio controls are the next component-expansion stage because they
+require additional Simplicity SDK components and regenerated project output.
 
 ## Prerequisites
 

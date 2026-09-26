@@ -12,6 +12,7 @@ extern "C" {
 
 #define RTT_COMMAND_ARGUMENT_COUNT 7U
 #define RTT_COMMAND_TOKEN_COUNT 9U
+#define RTT_COMMAND_SUPPORTED_SCAN_FLAGS 0x1U
 
 typedef enum {
   RTT_COMMAND_PARSE_OK = 0,
@@ -333,6 +334,9 @@ rtt_command_parse(const char *line, size_t line_length,
       return RTT_COMMAND_PARSE_RANGE;
     }
     if (filter > 3U) {
+      return RTT_COMMAND_PARSE_RANGE;
+    }
+    if ((flags & ~RTT_COMMAND_SUPPORTED_SCAN_FLAGS) != 0U) {
       return RTT_COMMAND_PARSE_RANGE;
     }
 
