@@ -61,17 +61,17 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Add pull-request security and quality workflows.
 - [x] Complete junior readability and senior embedded reviews; fix findings.
 - [x] Build/test locally and in Docker.
-- [ ] Open a pull request to `development` and verify all checks.
+- [x] Open a pull request to `development` and verify all checks.
 
 ## Session handoff
 
 Current stage: the RTT control-plane implementation and final independent
-reviews are complete. PR #6 is open against `development`; GitHub Actions and
-hardware RTT validation remain pending.
+reviews are complete. PR #6 is open against `development`; all reported GitHub
+Actions checks pass. Hardware RTT validation and required GitHub review remain.
 
 Next actions:
 
-1. Wait for PR #6 Actions and resolve any CI findings.
+1. Obtain the required GitHub review and merge PR #6 when approved.
 2. Flash the control image and exercise the RTT command surface on hardware.
 3. Expand the `.slcp` project with advertiser, connection, GATT, security, and
    periodic radio components.
@@ -100,6 +100,9 @@ the copy-ready template.
   SDK LFS archive for the Filter Accept List library.
 - `make test`, `make sanitize`, `make format-check`, and `make verify` passed
   after the fix; the final regenerated firmware build completed all 145 steps.
+- PR #6 verification run `36228082567` passed Host checks, Firmware build,
+  Workflow security, and Secret scan. Bootstrap run `36228082677` passed its
+  PR automation check. GitHub reports the PR is blocked only on required review.
 - `make flash`: erased, programmed, and verified 112 KiB on the attached
   BRD4181A, then reset the target.
 - `make rtt RTT_SECONDS=5`: captured scanner startup and ten distinct nearby
