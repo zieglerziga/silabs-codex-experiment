@@ -215,6 +215,7 @@ target_include_directories(slc_ble_scanner PUBLIC
 target_compile_definitions(slc_ble_scanner PUBLIC
     "EFR32MG21A010F1024IM32=1"
     "SL_CODE_COMPONENT_SYSTEM=system"
+    "RADIOAES_BLE_RPA_MAX_KEYS=8"
     "SL_BOARD_NAME=\"BRD4181A\""
     "SL_BOARD_REV=\"A02\""
     "HARDWARE_BOARD_DEFAULT_RF_BAND_2400=1"
@@ -255,8 +256,8 @@ target_link_libraries(slc_ble_scanner PUBLIC
     "nosys"
    "${SDK_PATH}/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a"
    "${SDK_PATH}/protocol/bluetooth/bgstack/ll/build/gcc/xg21/release/liblinklayer.a"
+   "${SDK_PATH}/protocol/bluetooth/build/gcc/cortex-m33/ble_host/accept_list/release/libble_host_accept_list.a"
    "${SDK_PATH}/protocol/bluetooth/build/gcc/cortex-m33/bgapi_protocol/api3/release/libbgapi_core.a"
-   "${SDK_PATH}/protocol/bluetooth/build/gcc/cortex-m33/ble_host/accept_list/release/libble_host_accept_list_stub.a"
    "${SDK_PATH}/protocol/bluetooth/build/gcc/cortex-m33/ble_host/bgstack/release/libble_host.a"
    "${SDK_PATH}/protocol/bluetooth/build/gcc/cortex-m33/ble_host/bgstack/release/libbondingdb_stub.a"
    "${SDK_PATH}/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi.a"

@@ -1,13 +1,14 @@
 # Project Status
 
-Last updated: 2026-09-25 (Europe/Budapest)
+Last updated: 2026-09-26 (Europe/Budapest)
 
 ## Goal
 
-Build a Silicon Labs firmware project that continuously scans for BLE
-advertisements and reports useful, rate-controlled observations through SEGGER
-RTT. The repository must build through CMake/Make/Docker, document its setup,
-and protect pull requests with free/open-source GitHub Actions checks.
+Build a Silicon Labs BLE control-lab firmware for the attached EFR32MG21 board.
+The first stage continuously scans for BLE advertisements and exposes bounded,
+low-level scanner, TX-power, identity, and logging controls through SEGGER RTT.
+The repository must build through CMake/Make/Docker, document its setup, and
+protect pull requests with free/open-source GitHub Actions checks.
 
 All repeatable operations are captured as scripts and surfaced through the
 root Makefile. Commits use scoped Conventional Commit messages, and each agent
@@ -19,7 +20,7 @@ stage leaves a human-readable status entry.
 | --- | --- |
 | GitHub repository | `zieglerziga/silabs-codex-experiment` |
 | Integration branch | `development` (created from `main`) |
-| Feature branch | `feature/ble-rtt-scanner` |
+| Feature branch | `feature/ble-rtt-control` |
 | Mainboard | BRD4001A Rev. A01 |
 | Radio board | BRD4181A Rev. A01 |
 | Device | EFR32MG21A010F1024IM32 (1 MiB flash, 96 KiB SRAM) |
@@ -55,22 +56,29 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Initialize the local CodeGraph index.
 - [x] Capture the reference-project architecture and decide repository layout.
 - [x] Add the Silicon Labs project, BLE scanner, RTT logging, and host tests.
+- [x] Add the first RTT control plane for scanner, TX-power, identity, and log settings.
 - [x] Add CMake, Make, and Docker build workflows.
 - [x] Add pull-request security and quality workflows.
 - [x] Complete junior readability and senior embedded reviews; fix findings.
 - [x] Build/test locally and in Docker.
 - [x] Open a pull request to `development` and verify all checks.
+- [x] Flash the current control image and exercise the RTT command surface on hardware.
 
 ## Session handoff
 
-Current stage: initial project delivery is complete. PR #1 merged into
-`development` at `f69f79142c8fde207a9c3d7130eeb7d9c13a677c` on 2026-09-25.
+Current stage: the RTT control-plane implementation, independent reviews, and
+hardware RTT validation are complete. PR #6 is open against `development`; all
+reported GitHub Actions checks pass. Required GitHub review remains.
+
+Next actions:
+
+1. Obtain the required GitHub review and merge PR #6 when approved.
+2. Expand the `.slcp` project with advertiser, connection, GATT, security, and
+   periodic radio components.
+
 See [DEVELOPMENT_PLAYBOOK.md](DEVELOPMENT_PLAYBOOK.md) for the development
 sequence and reusable prompt; see [PROMPT_TEMPLATE.md](PROMPT_TEMPLATE.md) for
 the copy-ready template.
-
-Next actions: start new work from `development`, scope it with the prompt
-template, and keep this status log current.
 
 ## Verification log
 
@@ -85,6 +93,33 @@ template, and keep this status log current.
   by the generated linker inputs.
 - `make firmware`: built the EFR32MG21 image with Arm GNU 16.2.0; final size was
   104400 bytes text, 2828 bytes data, and 95476 bytes BSS.
+- `SISDK_ROOT=$SISDK_ROOT SLC_CLI=$SLC_CLI make generate-firmware` regenerated
+  the extended-scanner, Filter Accept List, and Resolving List component
+  output.
+- `SISDK_ROOT=$SISDK_ROOT make prepare-sdk` materialized the one newly required
+  SDK LFS archive for the Filter Accept List library.
+- `make test`, `make sanitize`, `make format-check`, and `make verify` passed
+  after the fix; the final regenerated firmware build completed all 145 steps.
+- PR #6 verification run `36228082567` passed Host checks, Firmware build,
+  Workflow security, and Secret scan. Bootstrap run `36228082677` passed its
+  PR automation check. GitHub reports the PR is blocked only on required review.
+- Latest hardware validation on `feature/ble-rtt-control`:
+  - `make flash` programmed and verified `139264` bytes on the detected
+    BRD4181A/EFR32MG21 target, then reset it successfully.
+  - RTT `status` reported `board=BRD4181A`, target
+    `EFR32MG21A010F1024IM32`, SDK `2025.6.3`, `stack=ready`, and non-blocking
+    RTT with EM1 required.
+  - `scan stop`, `scan set active 160 80 1m observation 0 0`, and `scan start`
+    succeeded. A live reconfiguration to
+    `scan set passive 200 100 1m observation 0 0` also succeeded and status
+    reported `scan=on mode=passive interval=200 window=100`.
+  - `tx set -30 80` returned status `0x00000000`; the device reported the
+    selected range as `-29..80` in `0.1dBm` units. `identity get` returned
+    status `0x0000000F`.
+  - `log set observations off` and `log set summaries off` were reflected by
+    `logs=observations:off,summaries:off`; both streams were restored to `on`.
+  - `make rtt RTT_SECONDS=5` passed validation and captured first reports from
+    two nearby advertisers without recording their device identifiers.
 - `make flash`: erased, programmed, and verified 112 KiB on the attached
   BRD4181A, then reset the target.
 - `make rtt RTT_SECONDS=5`: captured scanner startup and ten distinct nearby
@@ -434,3 +469,40 @@ Resolutions:
   change; both junior readability and senior embedded/process re-reviews found
   no issues, and `git diff --check` passed. The final PR check run is recorded
   after this status-only update.
+
+### RTT control plane (fix and final review complete)
+
+- Started isolated branch `feature/ble-rtt-control` directly from `development`,
+  leaving the existing dirty checkout untouched.
+- Added a bounded, SDK-independent RTT command parser with `help`, `status`,
+  scanner start/stop/configuration, TX-power get/set, identity inspection, and
+  observation/summary logging controls. Parser input is fixed-size, validates
+  numeric ranges and named BLE modes, and allocates no memory.
+- The firmware applies scanner mode, interval, window, PHY, discovery mode,
+  scanner flags, and filter policy through the Silicon Labs API. The generated
+  project selects the extended scanner, Filter Accept List, and Resolving List
+  components required by those controls. TX-power changes are rejected while
+  scanning because the SDK forbids that operation in the active scanner state.
+  Existing aggregate/per-device log bounds remain in force.
+- Scan reconfiguration restores the last known working configuration when a
+  new configuration or restart fails, and reports restoration failures instead
+  of claiming that scanning resumed.
+- Updated project metadata, generation staging, README usage, and architecture
+  documentation. Advertiser, connection, GATT, security, and periodic-radio
+  controls are explicitly recorded as the next component-expansion stage.
+- Verification passed: `make test` (2/2 CTest tests), `make sanitize`,
+  `make format-check`, `make verify` (32 Python tests plus strict C gates),
+  `git diff --check`, and the regenerated `SISDK_ROOT=$SISDK_ROOT make firmware`
+  build with all 145 target steps completed.
+
+### RTT control review outcome (`e41a85d` -> `1aea0ed` -> `74f549f`)
+
+- Initial readability and embedded reviews identified scan rollback, scanner
+  component selection, unsupported option validation, and documentation issues.
+- Commit `1aea0ed` enabled the required scanner/list components, regenerated the
+  project, rejected unsupported scanner flag bits, and made scan rollback
+  preserve/report the last known state.
+- Commit `74f549f` corrected the architecture data flow to cover both legacy and
+  extended advertisement events. Final readability and embedded re-reviews
+  reported no confirmed findings; the embedded reviewer withdrew the earlier
+  resolving-list concern after checking the successful 145-step build.
