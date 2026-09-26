@@ -93,6 +93,13 @@ the copy-ready template.
   by the generated linker inputs.
 - `make firmware`: built the EFR32MG21 image with Arm GNU 16.2.0; final size was
   104400 bytes text, 2828 bytes data, and 95476 bytes BSS.
+- `SISDK_ROOT=$SISDK_ROOT SLC_CLI=$SLC_CLI make generate-firmware` regenerated
+  the extended-scanner, Filter Accept List, and Resolving List component
+  output.
+- `SISDK_ROOT=$SISDK_ROOT make prepare-sdk` materialized the one newly required
+  SDK LFS archive for the Filter Accept List library.
+- `make test`, `make sanitize`, `make format-check`, and `make verify` passed
+  after the fix; the final regenerated firmware build completed all 145 steps.
 - `make flash`: erased, programmed, and verified 112 KiB on the attached
   BRD4181A, then reset the target.
 - `make rtt RTT_SECONDS=5`: captured scanner startup and ten distinct nearby
