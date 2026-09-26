@@ -14,8 +14,9 @@ the scanner must not allocate memory dynamically.
    requests without dynamic memory.
 3. The application adapter applies validated scanner settings through the
    Silicon Labs Bluetooth API and reports command status through RTT.
-4. The Silicon Labs Bluetooth stack reports a legacy advertisement.
-5. The board-specific adapter converts it to a `scan_observation_t`.
+4. The Silicon Labs Bluetooth stack reports a legacy or extended advertisement.
+5. The board-specific adapter converts either report type to a
+   `scan_observation_t`.
 6. `scan_tracker_observe()` safely parses the local-name AD structure and
    updates a fixed 32-entry device cache.
 7. The tracker requests a log only for a first sighting, a rate-limited name or
