@@ -8,14 +8,20 @@ the scanner must not allocate memory dynamically.
 
 ## Data flow
 
-1. The Silicon Labs Bluetooth stack reports a legacy advertisement.
-2. The board-specific adapter converts it to a `scan_observation_t`.
-3. `scan_tracker_observe()` safely parses the local-name AD structure and
+1. The RTT down-channel command pump collects one bounded line without
+   blocking.
+2. The command parser validates scanner, TX-power, identity, and logging
+   requests without dynamic memory.
+3. The application adapter applies validated scanner settings through the
+   Silicon Labs Bluetooth API and reports command status through RTT.
+4. The Silicon Labs Bluetooth stack reports a legacy advertisement.
+5. The board-specific adapter converts it to a `scan_observation_t`.
+6. `scan_tracker_observe()` safely parses the local-name AD structure and
    updates a fixed 32-entry device cache.
-4. The tracker requests a log only for a first sighting, a rate-limited name or
+7. The tracker requests a log only for a first sighting, a rate-limited name or
    RSSI change, or a ten-second refresh.
-5. The adapter formats that result to the non-blocking RTT stream.
-6. The main loop emits cumulative statistics every 30 seconds.
+8. The adapter formats that result to the non-blocking RTT stream.
+9. The main loop emits cumulative statistics every 30 seconds.
 
 The tracking module has no Silicon Labs dependencies. It is built and tested on
 the host in pull-request CI, while the thin adapter is compiled with the
@@ -60,10 +66,15 @@ outside the image, keeping generation and hardware operations separate from
 the reproducible compile environment.
 
 The scanner uses passive 1M PHY scanning with a 100 ms interval and 50 ms
-window. RTT channel 0 is configured in non-blocking mode. The application keeps
-an EM1 power-manager requirement for the lifetime of the firmware because the
-debug probe cannot read the RTT RAM control block in EM2 on this board. Power
-optimization is intentionally outside this observability-first PoC.
+window by default. RTT channel 0 is configured in non-blocking mode. The
+application keeps an EM1 power-manager requirement for the lifetime of the
+firmware because the debug probe cannot read the RTT RAM control block in EM2 on
+this board. Power optimization is intentionally outside this observability-first
+control lab. The first RTT control stage can change scan mode, interval, window,
+PHY selection, discovery mode, scanner flags/filter policy, global TX-power
+limits, and logging enablement at runtime. Advertiser, connection, GATT,
+security, and extended/periodic radio APIs remain a planned component-expansion
+stage rather than being exposed by a scanner-only generated project.
 
 The SDK's tiny `printf` component is required even though the public API is
 `sl_iostream_printf()`: it streams formatted characters immediately. Falling

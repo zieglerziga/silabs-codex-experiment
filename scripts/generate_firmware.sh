@@ -30,7 +30,8 @@ trap cleanup EXIT HUP INT TERM
 cmake -E make_directory "$staging_dir/inc" "$staging_dir/src"
 cmake -E copy "$project_file" "$staging_dir/ble_scanner.slcp"
 cmake -E copy "$project_dir/app.c" "$project_dir/app.h" "$staging_dir"
-cmake -E copy "$project_dir/inc/scan_tracker.h" "$staging_dir/inc"
+cmake -E copy "$project_dir/inc/scan_tracker.h" "$project_dir/inc/rtt_command.h" \
+  "$staging_dir/inc"
 cmake -E copy "$project_dir/src/scan_tracker.c" "$staging_dir/src"
 
 "$slc_cli" generate \

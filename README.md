@@ -1,10 +1,10 @@
-# EFR32MG21 BLE RTT Scanner
+# EFR32MG21 BLE RTT Control Lab
 
-This repository contains an observability-first Silicon Labs proof of concept
-for the BRD4181A radio board on a BRD4001A mainboard. The firmware passively
-scans BLE legacy advertisements, tracks devices in bounded memory, suppresses
-duplicate reports, and writes useful observations and summaries through SEGGER
-RTT.
+This repository contains an observability-first Silicon Labs control-lab
+firmware for the BRD4181A radio board on a BRD4001A mainboard. The firmware
+scans BLE advertisements, tracks devices in bounded memory, suppresses
+duplicate reports, and exposes scanner, TX-power, identity, and logging
+controls through SEGGER RTT.
 
 The project targets `EFR32MG21A010F1024IM32` with Simplicity SDK `v2025.6.3`.
 The SDK and Silicon Labs tools stay outside this repository.
@@ -21,8 +21,38 @@ Observation output also has a global four-lines-per-second ceiling, so cache
 churn from rotating private addresses cannot turn RTT into a packet trace.
 
 RTT uses non-blocking mode so a disconnected or slow host cannot stall the
-Bluetooth event handler. This PoC holds an EM1 power-manager requirement while
-running because reliable RTT access is more important than battery behavior.
+Bluetooth event handler. This control lab holds an EM1 power-manager requirement
+while running because reliable RTT access is more important than battery
+behavior.
+
+## RTT control surface
+
+The target starts with a passive 1M observation scan. Type newline-terminated
+commands into RTT down-channel 0:
+
+```text
+help
+status
+scan stop
+scan set active 160 80 1m observation 0 0
+scan start
+tx get
+tx set -30 80
+identity get
+log set observations off
+log set summaries on
+```
+
+Scan interval and window use 0.625 ms units. TX power uses 0.1 dBm units.
+Changing TX power requires scanning to be stopped, and scan settings are
+validated before the current scan is restarted. The command parser is
+SDK-independent and bounded; malformed or overlong input is rejected without
+allocating memory.
+
+This first control stage intentionally covers APIs in the scanner-only project.
+Advertiser, connection, GATT, security, extended-scanner, and periodic-radio
+controls are the next component-expansion stage because they require additional
+Simplicity SDK components and regenerated project output.
 
 ## Prerequisites
 

@@ -39,4 +39,21 @@ if(BUILD_TESTING)
     )
   endif()
   add_test(NAME scan_tracker_tests COMMAND scan_tracker_tests)
+
+  add_executable(rtt_command_tests
+    tests/rtt_command_tests.c
+  )
+  target_include_directories(rtt_command_tests PRIVATE
+    firmware/ble_scanner/inc
+  )
+  if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(rtt_command_tests PRIVATE
+      -Wall
+      -Wextra
+      -Wconversion
+      -Werror
+      -Wpedantic
+    )
+  endif()
+  add_test(NAME rtt_command_tests COMMAND rtt_command_tests)
 endif()

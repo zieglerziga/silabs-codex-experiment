@@ -1,9 +1,9 @@
 # Silicon Labs Project Configuration Tools: slcp, v0, Component selection file.
 project_name: ble_scanner
-label: BLE RTT Scanner
+label: BLE RTT Control Lab
 description: >
-  Passive Bluetooth Low Energy scanner with bounded, rate-controlled SEGGER
-  RTT logging.
+  RTT-controlled Bluetooth Low Energy scanner with bounded logging and runtime
+  radio configuration for the BRD4181A development board.
 category: Bluetooth Examples
 package: Bluetooth
 quality: production
@@ -46,6 +46,7 @@ include:
   - path: inc
     file_list:
       - path: scan_tracker.h
+      - path: rtt_command.h
 
 configuration:
   - name: SL_STACK_SIZE
