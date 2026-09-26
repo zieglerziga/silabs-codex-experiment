@@ -62,18 +62,18 @@ export SISDK_ROOT=/path/to/simplicity_sdk
 - [x] Complete junior readability and senior embedded reviews; fix findings.
 - [x] Build/test locally and in Docker.
 - [x] Open a pull request to `development` and verify all checks.
+- [x] Flash the current control image and exercise the RTT command surface on hardware.
 
 ## Session handoff
 
-Current stage: the RTT control-plane implementation and final independent
-reviews are complete. PR #6 is open against `development`; all reported GitHub
-Actions checks pass. Hardware RTT validation and required GitHub review remain.
+Current stage: the RTT control-plane implementation, independent reviews, and
+hardware RTT validation are complete. PR #6 is open against `development`; all
+reported GitHub Actions checks pass. Required GitHub review remains.
 
 Next actions:
 
 1. Obtain the required GitHub review and merge PR #6 when approved.
-2. Flash the control image and exercise the RTT command surface on hardware.
-3. Expand the `.slcp` project with advertiser, connection, GATT, security, and
+2. Expand the `.slcp` project with advertiser, connection, GATT, security, and
    periodic radio components.
 
 See [DEVELOPMENT_PLAYBOOK.md](DEVELOPMENT_PLAYBOOK.md) for the development
@@ -103,6 +103,23 @@ the copy-ready template.
 - PR #6 verification run `36228082567` passed Host checks, Firmware build,
   Workflow security, and Secret scan. Bootstrap run `36228082677` passed its
   PR automation check. GitHub reports the PR is blocked only on required review.
+- Latest hardware validation on `feature/ble-rtt-control`:
+  - `make flash` programmed and verified `139264` bytes on the detected
+    BRD4181A/EFR32MG21 target, then reset it successfully.
+  - RTT `status` reported `board=BRD4181A`, target
+    `EFR32MG21A010F1024IM32`, SDK `2025.6.3`, `stack=ready`, and non-blocking
+    RTT with EM1 required.
+  - `scan stop`, `scan set active 160 80 1m observation 0 0`, and `scan start`
+    succeeded. A live reconfiguration to
+    `scan set passive 200 100 1m observation 0 0` also succeeded and status
+    reported `scan=on mode=passive interval=200 window=100`.
+  - `tx set -30 80` returned status `0x00000000`; the device reported the
+    selected range as `-29..80` in `0.1dBm` units. `identity get` returned
+    status `0x0000000F`.
+  - `log set observations off` and `log set summaries off` were reflected by
+    `logs=observations:off,summaries:off`; both streams were restored to `on`.
+  - `make rtt RTT_SECONDS=5` passed validation and captured first reports from
+    two nearby advertisers without recording their device identifiers.
 - `make flash`: erased, programmed, and verified 112 KiB on the attached
   BRD4181A, then reset the target.
 - `make rtt RTT_SECONDS=5`: captured scanner startup and ten distinct nearby
